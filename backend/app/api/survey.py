@@ -1,0 +1,111 @@
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from database import get_db
+from app.models import Subject, Evaluator, Question, Answer, SelfAnswer
+from app.schemas.answer import AnswerSubmit, SelfAnswerSubmit
+
+router = APIRouter(tags=["survey"])
+
+
+# --- Evaluator survey (external) ---
+
+@router.get("/survey/{token}")
+def obtener_survey(token: str, db: Session = Depends(get_db)):
+    evaluador = db.query(Evaluator).filter(Evaluator.token == token).first()
+    if not evaluador:
+        raise HTTPException(status_code=404, detail="Invalid or expired token")
+    if evaluador.completado:
+        raise HTTPException(status_code=410, detail="Survey already completed")
+
+    preguntas = db.query(Question).order_by(Question.numero).all()
+    return {
+        "evaluador_id": evaluador.id,
+        "nombre_evaluador": evaluador.nombre,
+        "nombre_sujeto": evaluador.sujeto.nombre,
+        "relacion": evaluador.relacion,
+        "completado": evaluador.completado,
+        "preguntas": [
+            {"id": p.id, "numero": p.numero, "texto": p.texto, "categoria": p.categoria}
+            for p in preguntas
+        ],
+    }
+
+
+@router.post("/survey/{token}/submit")
+def enviar_survey(token: str, data: AnswerSubmit, db: Session = Depends(get_db)):
+    evaluador = db.query(Evaluator).filter(Evaluator.token == token).first()
+    if not evaluador:
+        raise HTTPException(status_code=404, detail="Invalid or expired token")
+    if evaluador.completado:
+        raise HTTPException(status_code=410, detail="Survey already completed")
+
+    preguntas_ids = {p.id for p in db.query(Question).all()}
+    if len(data.respuestas) != len(preguntas_ids):
+        raise HTTPException(status_code=422, detail="Must answer all questions")
+
+    for item in data.respuestas:
+        if item.pregunta_id not in preguntas_ids:
+            raise HTTPException(status_code=422, detail=f"Invalid question id: {item.pregunta_id}")
+        respuesta = Answer(
+            evaluador_id=evaluador.id,
+            pregunta_id=item.pregunta_id,
+            puntaje=item.puntaje,
+        )
+        db.add(respuesta)
+
+    evaluador.completado = True
+    evaluador.completado_en = datetime.utcnow()
+    db.commit()
+
+    return {"message": "Survey submitted successfully. Thank you!"}
+
+
+# --- Self-assessment survey ---
+
+@router.get("/self/{token}")
+def obtener_self_survey(token: str, db: Session = Depends(get_db)):
+    sujeto = db.query(Subject).filter(Subject.self_token == token).first()
+    if not sujeto:
+        raise HTTPException(status_code=404, detail="Invalid or expired token")
+    if sujeto.self_completado:
+        raise HTTPException(status_code=410, detail="Self-assessment already completed")
+
+    preguntas = db.query(Question).order_by(Question.numero).all()
+    return {
+        "subject_id": sujeto.id,
+        "nombre": sujeto.nombre,
+        "completado": sujeto.self_completado,
+        "preguntas": [
+            {"id": p.id, "numero": p.numero, "texto": p.texto, "categoria": p.categoria}
+            for p in preguntas
+        ],
+    }
+
+
+@router.post("/self/{token}/submit")
+def enviar_self_survey(token: str, data: SelfAnswerSubmit, db: Session = Depends(get_db)):
+    sujeto = db.query(Subject).filter(Subject.self_token == token).first()
+    if not sujeto:
+        raise HTTPException(status_code=404, detail="Invalid or expired token")
+    if sujeto.self_completado:
+        raise HTTPException(status_code=410, detail="Self-assessment already completed")
+
+    preguntas_ids = {p.id for p in db.query(Question).all()}
+    if len(data.respuestas) != len(preguntas_ids):
+        raise HTTPException(status_code=422, detail="Must answer all questions")
+
+    for item in data.respuestas:
+        if item.pregunta_id not in preguntas_ids:
+            raise HTTPException(status_code=422, detail=f"Invalid question id: {item.pregunta_id}")
+        self_respuesta = SelfAnswer(
+            subject_id=sujeto.id,
+            pregunta_id=item.pregunta_id,
+            puntaje=item.puntaje,
+        )
+        db.add(self_respuesta)
+
+    sujeto.self_completado = True
+    db.commit()
+
+    return {"message": "Self-assessment submitted successfully!", "subject_id": sujeto.id}
