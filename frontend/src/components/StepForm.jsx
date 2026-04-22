@@ -75,6 +75,14 @@ export default function StepForm({ preguntas, onSubmit, storageKey }) {
     }
   }
 
+  if (!preguntas || preguntas.length === 0) {
+    return (
+      <div className="card text-center py-10">
+        <p className="text-muted text-sm">No questions available. Please contact the administrator.</p>
+      </div>
+    )
+  }
+
   if (!pregunta) return null
 
   const categoriaActual = preguntas.filter(p => p.categoria === pregunta.categoria)

@@ -33,20 +33,20 @@ def _html_invitacion(nombre_evaluador: str, nombre_sujeto: str, token: str) -> s
         .wrapper {{ max-width: 600px; margin: 0 auto; background: #f9fafb; padding: 20px; }}
         .container {{ background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
         .header {{ background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 48px 32px; text-align: center; }}
-        .header h1 {{ color: #fee84e; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }}
+        .header h1 {{ color: #29b8dc; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }}
         .header p {{ color: #9ca3af; font-size: 13px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }}
         .body {{ padding: 40px 32px; }}
         .body h2 {{ color: #1a1a1a; font-size: 18px; font-weight: 600; margin-bottom: 20px; }}
         .body p {{ font-size: 14px; line-height: 1.8; color: #4b5563; margin-bottom: 16px; }}
         .highlight {{ color: #1a1a1a; font-weight: 600; }}
         .cta-section {{ margin: 36px 0; text-align: center; }}
-        .cta {{ display: inline-block; padding: 14px 40px; background: #fee84e; color: #1a1a1a; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 15px; transition: all 0.2s; border: 2px solid #fee84e; }}
+        .cta {{ display: inline-block; padding: 14px 40px; background: #29b8dc; color: #1a1a1a; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 15px; transition: all 0.2s; border: 2px solid #29b8dc; }}
         .cta:hover {{ background: #fef3c7; }}
         .fallback-link {{ font-size: 12px; color: #6b7280; margin-top: 16px; word-break: break-all; }}
-        .fallback-link a {{ color: #fee84e; text-decoration: none; }}
+        .fallback-link a {{ color: #29b8dc; text-decoration: none; }}
         .footer {{ background: #f3f4f6; padding: 24px 32px; text-align: center; border-top: 1px solid #e5e7eb; }}
         .footer p {{ font-size: 12px; color: #9ca3af; margin: 0; }}
-        .footer a {{ color: #fee84e; text-decoration: none; }}
+        .footer a {{ color: #29b8dc; text-decoration: none; }}
       </style>
     </head>
     <body>
@@ -108,20 +108,20 @@ def _html_self_assessment(nombre: str, token: str) -> str:
         .wrapper {{ max-width: 600px; margin: 0 auto; background: #f9fafb; padding: 20px; }}
         .container {{ background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
         .header {{ background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 48px 32px; text-align: center; }}
-        .header h1 {{ color: #fee84e; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }}
+        .header h1 {{ color: #29b8dc; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }}
         .header p {{ color: #9ca3af; font-size: 13px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }}
         .body {{ padding: 40px 32px; }}
         .body h2 {{ color: #1a1a1a; font-size: 18px; font-weight: 600; margin-bottom: 20px; }}
         .body p {{ font-size: 14px; line-height: 1.8; color: #4b5563; margin-bottom: 16px; }}
         .highlight {{ color: #1a1a1a; font-weight: 600; }}
-        .step-box {{ background: #f0fdf4; border-left: 4px solid #fee84e; padding: 16px; margin: 20px 0; border-radius: 4px; }}
+        .step-box {{ background: #f0fdf4; border-left: 4px solid #29b8dc; padding: 16px; margin: 20px 0; border-radius: 4px; }}
         .step-box p {{ margin: 0; font-size: 14px; color: #1a1a1a; }}
         .cta-section {{ margin: 36px 0; text-align: center; }}
-        .cta {{ display: inline-block; padding: 14px 40px; background: #fee84e; color: #1a1a1a; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 15px; transition: all 0.2s; border: 2px solid #fee84e; }}
+        .cta {{ display: inline-block; padding: 14px 40px; background: #29b8dc; color: #1a1a1a; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 15px; transition: all 0.2s; border: 2px solid #29b8dc; }}
         .cta:hover {{ background: #fef3c7; }}
         .footer {{ background: #f3f4f6; padding: 24px 32px; text-align: center; border-top: 1px solid #e5e7eb; }}
         .footer p {{ font-size: 12px; color: #9ca3af; margin: 0; }}
-        .footer a {{ color: #fee84e; text-decoration: none; }}
+        .footer a {{ color: #29b8dc; text-decoration: none; }}
       </style>
     </head>
     <body>
