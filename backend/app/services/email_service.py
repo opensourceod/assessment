@@ -6,12 +6,14 @@ load_dotenv()
 
 conf = ConnectionConfig(
     MAIL_USERNAME=os.getenv("MAIL_USERNAME", ""),
-    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD", ""),
+    # Limpiamos comillas y espacios por seguridad
+    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD", "vnxb ylka gppa exhh").replace('"', '').strip(),
     MAIL_FROM=os.getenv("MAIL_FROM", "noreply@example.com"),
-    MAIL_PORT=int(os.getenv("MAIL_PORT", 587)),
+    MAIL_PORT=int(os.getenv("MAIL_PORT", 465)),
     MAIL_SERVER=os.getenv("MAIL_SERVER", "smtp.gmail.com"),
-    MAIL_STARTTLS=os.getenv("MAIL_STARTTLS", "True") == "True",
-    MAIL_SSL_TLS=os.getenv("MAIL_SSL_TLS", "False") == "True",
+    # Usamos .lower() para que no importe si escribes "true" o "True" en Railway
+    MAIL_STARTTLS=os.getenv("MAIL_STARTTLS", "False").lower() == "true",
+    MAIL_SSL_TLS=os.getenv("MAIL_SSL_TLS", "True").lower() == "true",
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True,
 )
