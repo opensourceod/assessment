@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import axios from 'axios'
+import axios from '../api/client'
 
 export default function Home() {
   const navigate = useNavigate()

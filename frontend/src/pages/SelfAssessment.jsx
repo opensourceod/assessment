@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import StepForm from '../components/StepForm'
-import axios from 'axios'
+import axios from '../api/client'
 
 export default function SelfAssessment() {
   const { token } = useParams()

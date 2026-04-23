@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import axios from 'axios'
+import axios from '../api/client'
 
 const RELACIONES = [
   { value: 'manager', label: 'Manager / Supervisor' },

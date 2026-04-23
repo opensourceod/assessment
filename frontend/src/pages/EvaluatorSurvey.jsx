@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import StepForm from '../components/StepForm'
-import axios from 'axios'
+import axios from '../api/client'
 
 export default function EvaluatorSurvey() {
   const { token } = useParams()

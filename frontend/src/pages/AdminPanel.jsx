@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import axios from 'axios'
+import axios from '../api/client'
 
 export default function AdminPanel() {
   const [stats, setStats] = useState(null)

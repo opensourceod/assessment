@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import RadarChart from '../components/RadarChart'
-import axios from 'axios'
+import axios from '../api/client'
 
 export default function GapReport() {
   const { subjectId } = useParams()

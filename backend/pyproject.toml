@@ -12,6 +12,7 @@ dependencies = [
     "python-dotenv==1.0.1",
     "pydantic[email]==2.7.1",
     "python-multipart==0.0.9",
+    "psycopg2-binary==2.9.9",
 ]
 
 [tool.uv]
