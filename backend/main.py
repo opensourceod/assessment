@@ -7,7 +7,7 @@ load_dotenv()
 
 from database import engine, Base
 from app.models import Subject, Evaluator, Question, Answer, SelfAnswer  # noqa: F401 — register models
-from app.api import subjects, survey, reports, admin
+from app.api import subjects, survey, reports, admin, pruebas_email
 
 Base.metadata.create_all(bind=engine)
 
@@ -31,6 +31,7 @@ app.include_router(subjects.router, prefix="/api")
 app.include_router(survey.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(pruebas_email.router)
 
 
 @app.get("/")
