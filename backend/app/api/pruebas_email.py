@@ -1,11 +1,13 @@
 import socket
 from fastapi import APIRouter
+import os
+
 
 router = APIRouter()
 
 @router.get("/debug-mail")
 def debug_mail():
-    target = "smtp.gmail.com"
+    target = os.getenv("MAIL_SERVER")
     ports = [465, 587]
     results = {}
     
