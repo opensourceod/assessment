@@ -1,20 +1,9 @@
 import os
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from dotenv import load_dotenv
+import httpx
+from fastapi import HTTPException
 
 load_dotenv()
-
-conf = ConnectionConfig(
-    MAIL_USERNAME=os.getenv("MAIL_USERNAME", ""),
-    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD", "").replace('"', '').strip(),
-    MAIL_FROM=os.getenv("MAIL_FROM", "noreply@example.com"),
-    MAIL_PORT=int(os.getenv("MAIL_PORT", "")),
-    MAIL_SERVER=os.getenv("MAIL_SERVER", ""),
-    MAIL_STARTTLS=os.getenv("MAIL_STARTTLS", "False").lower() == "true",
-    MAIL_SSL_TLS=os.getenv("MAIL_SSL_TLS", "True").lower() == "true",
-    USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True,
-)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
@@ -162,23 +151,34 @@ def _html_self_assessment(nombre: str, token: str) -> str:
     """
 
 
+async def _enviar_email_brevo(to_email: str, to_name: str, subject: str, html_content: str):
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "accept": "application/json",
+        "api-key": os.getenv("BREVO_API_KEY"), # La clave larga, no la SMTP
+        "content-type": "application/json"
+    }
+    payload = {
+        "sender": {"name": "360 MOST Assessment", "email": "hello@wearequant.com"},
+        "to": [{"email": to_email, "name": to_name}],
+        "subject": subject,
+        "htmlContent": html_content,
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=payload)
+        if response.status_code != 201:
+            raise HTTPException(status_code=400, detail=f"Error: {response.text}")
+        return {"status": "enviado"}
+
+
 async def enviar_invitacion(nombre_evaluador: str, email: str, nombre_sujeto: str, token: str):
-    message = MessageSchema(
-        subject=f"You've been invited to evaluate {nombre_sujeto} — 360 MOST Assessment",
-        recipients=[email],
-        body=_html_invitacion(nombre_evaluador, nombre_sujeto, token),
-        subtype=MessageType.html,
-    )
-    fm = FastMail(conf)
-    await fm.send_message(message)
+    subject = f"You've been invited to evaluate {nombre_sujeto} — 360 MOST Assessment"
+    html_content = _html_invitacion(nombre_evaluador, nombre_sujeto, token)
+    return await _enviar_email_brevo(email, nombre_evaluador, subject, html_content)
 
 
 async def enviar_self_assessment(nombre: str, email: str, token: str):
-    message = MessageSchema(
-        subject="Your 360 MOST Assessment is ready",
-        recipients=[email],
-        body=_html_self_assessment(nombre, token),
-        subtype=MessageType.html,
-    )
-    fm = FastMail(conf)
-    await fm.send_message(message)
+    subject = "Your 360 MOST Assessment is ready"
+    html_content = _html_self_assessment(nombre, token)
+    return await _enviar_email_brevo(email, nombre, subject, html_content)
