@@ -20,7 +20,13 @@ export default function Home() {
     setError(null)
     try {
       const { data } = await axios.post('/api/subjects/', form)
-      navigate(`/dashboard/${data.id}`)
+      // MOST 2.0: go directly to questions (no evaluators needed)
+      // MOST 360: go through dashboard to invite evaluators
+      if (data.form_type === 'most_2.0') {
+        navigate(`/self/${data.self_token}`)
+      } else {
+        navigate(`/dashboard/${data.id}`)
+      }
     } catch (e) {
       setError(e?.response?.data?.detail || 'Something went wrong. Please try again.')
       setCargando(false)
@@ -68,7 +74,7 @@ export default function Home() {
                     className="mt-1 w-4 h-4 text-primary"
                   />
                   <div>
-                    <p className="text-sm font-bold text-dark">MOST 360 Feedback</p>
+                    <p className="text-sm font-bold text-dark">360 Feedback</p>
                     <p className="text-xs text-muted mt-0.5">Comprehensive 360° feedback from peers and managers.</p>
                   </div>
                 </label>

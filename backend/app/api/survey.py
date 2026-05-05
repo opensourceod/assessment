@@ -3,9 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from app.models import Subject, Evaluator, Question, Answer, SelfAnswer
+from app.models.question import FormType
 from app.schemas.answer import AnswerSubmit, SelfAnswerSubmit
 
 router = APIRouter(tags=["survey"])
+
+
 
 
 def _format_preguntas(preguntas):
@@ -33,9 +36,13 @@ def obtener_survey(token: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=410, detail="Survey already completed")
 
     form_type = evaluador.sujeto.form_type
+    if form_type == FormType.most_360 or form_type == FormType.most_2_0:
+        question_type = FormType.most_2_0
+    else:
+        question_type = form_type
     preguntas = (
         db.query(Question)
-        .filter(Question.form_type == form_type)
+        .filter(Question.form_type == question_type)
         .order_by(Question.numero)
         .all()
     )
@@ -60,7 +67,7 @@ def enviar_survey(token: str, data: AnswerSubmit, db: Session = Depends(get_db))
 
     form_type = evaluador.sujeto.form_type
     preguntas_ids = {
-        p.id for p in db.query(Question).filter(Question.form_type == form_type).all()
+        p.id for p in db.query(Question).filter(Question.form_type == _question_form_type(form_type)).all()
     }
     if len(data.respuestas) != len(preguntas_ids):
         raise HTTPException(status_code=422, detail="Must answer all questions")
@@ -91,9 +98,10 @@ def obtener_self_survey(token: str, db: Session = Depends(get_db)):
     if sujeto.self_completado:
         raise HTTPException(status_code=410, detail="Self-assessment already completed")
 
+    question_type = _question_form_type(sujeto.form_type)
     preguntas = (
         db.query(Question)
-        .filter(Question.form_type == sujeto.form_type)
+        .filter(Question.form_type == question_type)
         .order_by(Question.numero)
         .all()
     )
@@ -115,7 +123,7 @@ def enviar_self_survey(token: str, data: SelfAnswerSubmit, db: Session = Depends
         raise HTTPException(status_code=410, detail="Self-assessment already completed")
 
     preguntas_ids = {
-        p.id for p in db.query(Question).filter(Question.form_type == sujeto.form_type).all()
+        p.id for p in db.query(Question).filter(Question.form_type == _question_form_type(sujeto.form_type)).all()
     }
     if len(data.respuestas) != len(preguntas_ids):
         raise HTTPException(status_code=422, detail="Must answer all questions")
