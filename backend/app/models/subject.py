@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum
 from sqlalchemy.orm import relationship
 from database import Base
+from app.models.question import FormType
 
 
 class Subject(Base):
@@ -15,6 +16,7 @@ class Subject(Base):
     self_token = Column(String, unique=True, default=lambda: str(uuid.uuid4()), nullable=False)
     self_completado = Column(Boolean, default=False)
     creado_en = Column(DateTime, default=datetime.utcnow)
+    form_type = Column(Enum(FormType), nullable=False, default=FormType.most_360, server_default="most_360")
 
     evaluadores = relationship("Evaluator", back_populates="sujeto", cascade="all, delete-orphan")
     self_respuestas = relationship("SelfAnswer", back_populates="sujeto", cascade="all, delete-orphan")

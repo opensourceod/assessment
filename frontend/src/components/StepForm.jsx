@@ -1,23 +1,16 @@
 import { useState } from 'react'
 import ProgressCircle from './ProgressCircle'
 
-const OPCIONES = [
-  { value: 1, label: 'Strongly Disagree' },
-  { value: 2, label: 'Disagree' },
-  { value: 3, label: 'Neutral' },
-  { value: 4, label: 'Agree' },
-  { value: 5, label: 'Strongly Agree' },
-]
+/**
+ * Step-by-step survey form with local persistence and data-driven response options.
+ *
+ * @param {Array}    preguntas   - [{id, numero, texto, categoria, opciones}]
+ * @param {Function} onSubmit    - async fn(respuestas: [{pregunta_id, puntaje}])
+ * @param {string}   storageKey  - unique key for localStorage (token or subject_id)
+ */
 
 const STORAGE_KEY_PREFIX = 'v360_survey_'
 
-/**
- * Step-by-step Likert survey form with local persistence.
- *
- * @param {Array}    preguntas    - [{id, numero, texto, categoria}]
- * @param {Function} onSubmit     - async fn(respuestas: [{pregunta_id, puntaje}])
- * @param {string}   storageKey   - unique key for localStorage (token or subject_id)
- */
 export default function StepForm({ preguntas, onSubmit, storageKey }) {
   const lsKey = `${STORAGE_KEY_PREFIX}${storageKey}`
 
@@ -39,6 +32,9 @@ export default function StepForm({ preguntas, onSubmit, storageKey }) {
   const esUltima = currentIndex === preguntas.length - 1
   const respondidas = Object.keys(respuestas).length
 
+  // Per-question options — comes from backend; no hardcoded scales
+  const opciones = pregunta?.opciones ?? []
+
   function seleccionar(valor) {
     const nuevas = { ...respuestas, [pregunta.id]: valor }
     setRespuestas(nuevas)
@@ -50,7 +46,7 @@ export default function StepForm({ preguntas, onSubmit, storageKey }) {
   }
 
   function siguiente() {
-    if (seleccion !== null && currentIndex < preguntas.length - 1) {
+    if (seleccion !== null && seleccion !== undefined && currentIndex < preguntas.length - 1) {
       setCurrentIndex(currentIndex + 1)
     }
   }
@@ -85,8 +81,8 @@ export default function StepForm({ preguntas, onSubmit, storageKey }) {
 
   if (!pregunta) return null
 
-  const categoriaActual = preguntas.filter(p => p.categoria === pregunta.categoria)
-  const enCategoria = categoriaActual.filter(p => respuestas[p.id]).length
+  const isBinary = opciones.length === 2
+  const hasSeleccion = seleccion !== null && seleccion !== undefined
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -110,26 +106,31 @@ export default function StepForm({ preguntas, onSubmit, storageKey }) {
         </p>
       </div>
 
-      {/* Likert options */}
-      <div className="flex flex-col gap-3 mb-8">
-        {OPCIONES.map(op => (
-          <button
-            key={op.value}
-            onClick={() => seleccionar(op.value)}
-            className={`flex items-center gap-4 px-5 py-3 rounded-full border text-left transition-all duration-150 ${
-              seleccion === op.value
-                ? 'border-primary bg-primary text-white font-semibold shadow-sm'
-                : 'border-gray-200 bg-white hover:border-primary text-dark'
-            }`}
-          >
-            <span className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-              seleccion === op.value ? 'border-white bg-white text-primary' : 'border-gray-300 text-gray-400'
-            }`}>
-              {op.value}
-            </span>
-            <span className="text-sm">{op.label}</span>
-          </button>
-        ))}
+      {/* Response options — data-driven from backend */}
+      <div className={`flex ${isBinary ? 'flex-col gap-4' : 'flex-col gap-3'} mb-8`}>
+        {opciones.map((op) => {
+          const isSelected = seleccion === op.value
+          return (
+            <button
+              key={op.value}
+              onClick={() => seleccionar(op.value)}
+              className={`flex items-center gap-4 px-5 py-3 rounded-full border text-left transition-all duration-150 ${
+                isSelected
+                  ? 'border-primary bg-primary text-white font-semibold shadow-sm'
+                  : 'border-gray-200 bg-white hover:border-primary text-dark'
+              }`}
+            >
+              {!isBinary && (
+                <span className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                  isSelected ? 'border-white bg-white text-primary' : 'border-gray-300 text-gray-400'
+                }`}>
+                  {op.display}
+                </span>
+              )}
+              <span className="text-sm leading-snug">{op.label}</span>
+            </button>
+          )
+        })}
       </div>
 
       {error && (
@@ -149,7 +150,7 @@ export default function StepForm({ preguntas, onSubmit, storageKey }) {
         {esUltima ? (
           <button
             onClick={handleSubmit}
-            disabled={!seleccion || enviando}
+            disabled={!hasSeleccion || enviando}
             className="btn-primary text-sm px-6 py-2"
           >
             {enviando ? 'Submitting...' : 'Submit Survey'}
@@ -157,7 +158,7 @@ export default function StepForm({ preguntas, onSubmit, storageKey }) {
         ) : (
           <button
             onClick={siguiente}
-            disabled={!seleccion}
+            disabled={!hasSeleccion}
             className="btn-primary text-sm px-5 py-2"
           >
             Next →

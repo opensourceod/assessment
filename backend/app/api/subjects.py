@@ -22,6 +22,7 @@ async def crear_sujeto(
         nombre=data.nombre,
         email=data.email,
         departamento=data.departamento,
+        form_type=data.form_type,
     )
     db.add(sujeto)
     db.commit()

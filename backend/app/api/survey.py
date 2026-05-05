@@ -8,6 +8,20 @@ from app.schemas.answer import AnswerSubmit, SelfAnswerSubmit
 router = APIRouter(tags=["survey"])
 
 
+def _format_preguntas(preguntas):
+    """Serialize a list of Question objects including per-question opciones."""
+    return [
+        {
+            "id": p.id,
+            "numero": p.numero,
+            "texto": p.texto,
+            "categoria": p.categoria,
+            "opciones": p.opciones,
+        }
+        for p in preguntas
+    ]
+
+
 # --- Evaluator survey (external) ---
 
 @router.get("/survey/{token}")
@@ -18,17 +32,21 @@ def obtener_survey(token: str, db: Session = Depends(get_db)):
     if evaluador.completado:
         raise HTTPException(status_code=410, detail="Survey already completed")
 
-    preguntas = db.query(Question).order_by(Question.numero).all()
+    form_type = evaluador.sujeto.form_type
+    preguntas = (
+        db.query(Question)
+        .filter(Question.form_type == form_type)
+        .order_by(Question.numero)
+        .all()
+    )
     return {
         "evaluador_id": evaluador.id,
         "nombre_evaluador": evaluador.nombre,
         "nombre_sujeto": evaluador.sujeto.nombre,
         "relacion": evaluador.relacion,
         "completado": evaluador.completado,
-        "preguntas": [
-            {"id": p.id, "numero": p.numero, "texto": p.texto, "categoria": p.categoria}
-            for p in preguntas
-        ],
+        "form_type": form_type,
+        "preguntas": _format_preguntas(preguntas),
     }
 
 
@@ -40,19 +58,21 @@ def enviar_survey(token: str, data: AnswerSubmit, db: Session = Depends(get_db))
     if evaluador.completado:
         raise HTTPException(status_code=410, detail="Survey already completed")
 
-    preguntas_ids = {p.id for p in db.query(Question).all()}
+    form_type = evaluador.sujeto.form_type
+    preguntas_ids = {
+        p.id for p in db.query(Question).filter(Question.form_type == form_type).all()
+    }
     if len(data.respuestas) != len(preguntas_ids):
         raise HTTPException(status_code=422, detail="Must answer all questions")
 
     for item in data.respuestas:
         if item.pregunta_id not in preguntas_ids:
             raise HTTPException(status_code=422, detail=f"Invalid question id: {item.pregunta_id}")
-        respuesta = Answer(
+        db.add(Answer(
             evaluador_id=evaluador.id,
             pregunta_id=item.pregunta_id,
             puntaje=item.puntaje,
-        )
-        db.add(respuesta)
+        ))
 
     evaluador.completado = True
     evaluador.completado_en = datetime.utcnow()
@@ -71,15 +91,18 @@ def obtener_self_survey(token: str, db: Session = Depends(get_db)):
     if sujeto.self_completado:
         raise HTTPException(status_code=410, detail="Self-assessment already completed")
 
-    preguntas = db.query(Question).order_by(Question.numero).all()
+    preguntas = (
+        db.query(Question)
+        .filter(Question.form_type == sujeto.form_type)
+        .order_by(Question.numero)
+        .all()
+    )
     return {
         "subject_id": sujeto.id,
         "nombre": sujeto.nombre,
         "completado": sujeto.self_completado,
-        "preguntas": [
-            {"id": p.id, "numero": p.numero, "texto": p.texto, "categoria": p.categoria}
-            for p in preguntas
-        ],
+        "form_type": sujeto.form_type,
+        "preguntas": _format_preguntas(preguntas),
     }
 
 
@@ -91,19 +114,20 @@ def enviar_self_survey(token: str, data: SelfAnswerSubmit, db: Session = Depends
     if sujeto.self_completado:
         raise HTTPException(status_code=410, detail="Self-assessment already completed")
 
-    preguntas_ids = {p.id for p in db.query(Question).all()}
+    preguntas_ids = {
+        p.id for p in db.query(Question).filter(Question.form_type == sujeto.form_type).all()
+    }
     if len(data.respuestas) != len(preguntas_ids):
         raise HTTPException(status_code=422, detail="Must answer all questions")
 
     for item in data.respuestas:
         if item.pregunta_id not in preguntas_ids:
             raise HTTPException(status_code=422, detail=f"Invalid question id: {item.pregunta_id}")
-        self_respuesta = SelfAnswer(
+        db.add(SelfAnswer(
             subject_id=sujeto.id,
             pregunta_id=item.pregunta_id,
             puntaje=item.puntaje,
-        )
-        db.add(self_respuesta)
+        ))
 
     sujeto.self_completado = True
     db.commit()

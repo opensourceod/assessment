@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, CheckConstraint
+from sqlalchemy import Column, Integer, Float, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -10,10 +10,11 @@ class Answer(Base):
     id = Column(Integer, primary_key=True, index=True)
     evaluador_id = Column(Integer, ForeignKey("evaluadores.id", ondelete="CASCADE"), nullable=False)
     pregunta_id = Column(Integer, ForeignKey("preguntas.id"), nullable=False)
-    puntaje = Column(Integer, nullable=False)
+    # Float supports multi-scale scores: binary (0/1), ideal (0/25/50/75/100), OD (0/33.33/66.67/100)
+    puntaje = Column(Float, nullable=False)
 
     __table_args__ = (
-        CheckConstraint("puntaje >= 1 AND puntaje <= 5", name="check_puntaje_rango"),
+        CheckConstraint("puntaje >= 0 AND puntaje <= 100", name="check_puntaje_rango"),
     )
 
     evaluador = relationship("Evaluator", back_populates="respuestas")
@@ -27,10 +28,11 @@ class SelfAnswer(Base):
     id = Column(Integer, primary_key=True, index=True)
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     pregunta_id = Column(Integer, ForeignKey("preguntas.id"), nullable=False)
-    puntaje = Column(Integer, nullable=False)
+    # Float supports multi-scale scores: binary (0/1), ideal (0/25/50/75/100), OD (0/33.33/66.67/100)
+    puntaje = Column(Float, nullable=False)
 
     __table_args__ = (
-        CheckConstraint("puntaje >= 1 AND puntaje <= 5", name="check_self_puntaje_rango"),
+        CheckConstraint("puntaje >= 0 AND puntaje <= 100", name="check_self_puntaje_rango"),
     )
 
     sujeto = relationship("Subject", back_populates="self_respuestas")

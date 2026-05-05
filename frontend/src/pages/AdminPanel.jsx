@@ -76,6 +76,7 @@ export default function AdminPanel() {
                     <th className="text-left py-2 font-semibold">Name</th>
                     <th className="text-left py-2 font-semibold">Email</th>
                     <th className="text-left py-2 font-semibold">Department</th>
+                    <th className="text-left py-2 font-semibold">Type</th>
                     <th className="text-center py-2 font-semibold">Self</th>
                     <th className="text-center py-2 font-semibold">Created</th>
                     <th className="text-center py-2 font-semibold">Actions</th>
@@ -87,6 +88,11 @@ export default function AdminPanel() {
                       <td className="py-3 font-medium">{s.nombre}</td>
                       <td className="py-3 text-muted">{s.email}</td>
                       <td className="py-3 text-muted">{s.departamento}</td>
+                      <td className="py-3">
+                        <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                          {s.form_type === 'most_360' ? '360' : 'Vocacional'}
+                        </span>
+                      </td>
                       <td className="text-center py-3">
                         <span className={`text-xs px-2 py-0.5 rounded font-medium ${
                           s.self_completado ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'

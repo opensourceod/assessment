@@ -5,7 +5,12 @@ import axios from '../api/client'
 
 export default function Home() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ nombre: '', email: '', departamento: '' })
+  const [form, setForm] = useState({
+    nombre: '',
+    email: '',
+    departamento: '',
+    form_type: 'most_360'
+  })
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState(null)
 
@@ -32,32 +37,12 @@ export default function Home() {
           Open Source OD Framework
         </p>
         <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-          360 MOST<br/>Assessment
+          MOST<br />Assessments
         </h1>
         <p className="text-gray-400 text-lg max-w-xl mx-auto">
-          Discover the gap between how you see yourself and how others see you.
-          Invite your manager, colleagues, and friends to complete the assessment.
+          Discover insights about your professional profile and interpersonal impact.
+          Scalable, data-driven assessments for modern organizations.
         </p>
-      </div>
-
-      {/* How it works */}
-      <div className="max-w-4xl mx-auto py-16 px-6">
-        <h2 className="text-2xl font-bold text-center mb-10">How it works</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { step: '01', title: 'Register', desc: 'Enter your name, email, and department to create your assessment.' },
-            { step: '02', title: 'Invite evaluators', desc: 'Add your manager, colleagues, and friends. They receive an email with a unique survey link.' },
-            { step: '03', title: 'See your report', desc: 'Once responses come in, view your Gap Analysis radar chart showing blind spots and strengths.' },
-          ].map(item => (
-            <div key={item.step} className="card text-center">
-              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 font-bold text-dark">
-                {item.step}
-              </div>
-              <h3 className="font-bold mb-2">{item.title}</h3>
-              <p className="text-sm text-muted leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Registration form */}
@@ -65,10 +50,45 @@ export default function Home() {
         <div className="max-w-md mx-auto">
           <h2 className="text-2xl font-bold mb-2 text-center">Start your assessment</h2>
           <p className="text-muted text-sm text-center mb-8">
-            You'll receive a self-assessment link by email.
+            Select your assessment type and enter your details to begin.
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {/* Form Type Selector */}
+            <div className="flex flex-col gap-3 mb-2">
+              <label className="label">Assessment Type</label>
+              <div className="grid grid-cols-1 gap-3">
+                <label className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${form.form_type === 'most_360' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+                  <input
+                    type="radio"
+                    name="form_type"
+                    value="most_360"
+                    checked={form.form_type === 'most_360'}
+                    onChange={e => setForm({ ...form, form_type: e.target.value })}
+                    className="mt-1 w-4 h-4 text-primary"
+                  />
+                  <div>
+                    <p className="text-sm font-bold text-dark">MOST 360 Feedback</p>
+                    <p className="text-xs text-muted mt-0.5">Comprehensive 360° feedback from peers and managers.</p>
+                  </div>
+                </label>
+                <label className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${form.form_type === 'most_2.0' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+                  <input
+                    type="radio"
+                    name="form_type"
+                    value="most_2.0"
+                    checked={form.form_type === 'most_2.0'}
+                    onChange={e => setForm({ ...form, form_type: e.target.value })}
+                    className="mt-1 w-4 h-4 text-primary"
+                  />
+                  <div>
+                    <p className="text-sm font-bold text-dark">MOST 2.0</p>
+                    <p className="text-xs text-muted mt-0.5">Specialized for talent development.</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             <div>
               <label className="label">Full name</label>
               <input
@@ -103,10 +123,30 @@ export default function Home() {
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <button type="submit" className="btn-primary w-full" disabled={cargando}>
+            <button type="submit" className="btn-primary w-full mt-2 py-3" disabled={cargando}>
               {cargando ? 'Creating assessment...' : 'Get started →'}
             </button>
           </form>
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="max-w-4xl mx-auto py-16 px-6 border-t border-gray-100">
+        <h2 className="text-2xl font-bold text-center mb-10">How it works</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            { step: '01', title: 'Register', desc: 'Select the assessment type and enter your details.' },
+            { step: '02', title: 'Invite evaluators', desc: 'Add colleagues or friends (for 360) or proceed to your own self-assessment.' },
+            { step: '03', title: 'See your report', desc: 'Once data is collected, view your interactive analysis and gap reports.' },
+          ].map(item => (
+            <div key={item.step} className="card text-center">
+              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 font-bold text-dark">
+                {item.step}
+              </div>
+              <h3 className="font-bold mb-2">{item.title}</h3>
+              <p className="text-sm text-muted leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
