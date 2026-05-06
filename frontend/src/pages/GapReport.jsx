@@ -14,23 +14,23 @@ export default function GapReport() {
   const [error, setError] = useState(null)
   const [showBreakdown, setShowBreakdown] = useState(false)
 
-   const exportPDF = async () => {
-  
+  const exportPDF = async () => {
+
     const input = document.getElementById('table-pdf')
-  
+
     const canvas = await html2canvas(input, {
       scale: 2
     })
-  
+
     const imgData = canvas.toDataURL('image/png')
-  
+
     const pdf = new jsPDF('p', 'mm', 'a4')
-  
+
     const pdfWidth = pdf.internal.pageSize.getWidth()
-  
+
     const pdfHeight =
       (canvas.height * pdfWidth) / canvas.width
-  
+
     pdf.addImage(
       imgData,
       'PNG',
@@ -39,7 +39,7 @@ export default function GapReport() {
       pdfWidth,
       pdfHeight
     )
-  
+
     pdf.save(`gap-report-${subjectId}.pdf`)
   }
 
@@ -125,16 +125,14 @@ export default function GapReport() {
             <RadarChart data={reporte.categorias} showBreakdown={showBreakdown} />
           </div>
         )}
-
-         // ===== EXPORTAR PARA EL PDF =====
-<div className="flex justify-end mb-4">
-  <button
-    onClick={exportPDF}
-    className="btn-primary text-sm px-4 py-2"
-  >
-    Descargar PDF
-  </button>
-</div>
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={exportPDF}
+            className="btn-primary text-sm px-4 py-2"
+          >
+            Descargar PDF
+          </button>
+        </div>
 
         {/* Category breakdown table */}
         <div id="table-pdf" className="card">
@@ -160,8 +158,8 @@ export default function GapReport() {
                   const gapColor = gap == null ? '' : parseFloat(gap) > 0.5
                     ? 'text-red-500 font-semibold'
                     : parseFloat(gap) < -0.5
-                    ? 'text-green-600 font-semibold'
-                    : 'text-muted'
+                      ? 'text-green-600 font-semibold'
+                      : 'text-muted'
 
                   return (
                     <tr key={cat.categoria} className="border-b border-gray-50 hover:bg-gray-50">
