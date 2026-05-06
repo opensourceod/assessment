@@ -3,6 +3,9 @@ import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import RadarChart from '../components/RadarChart'
 import axios from '../api/client'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
+
 
 export default function GapReport() {
   const { subjectId } = useParams()
@@ -10,6 +13,35 @@ export default function GapReport() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [showBreakdown, setShowBreakdown] = useState(false)
+
+   const exportPDF = async () => {
+  
+    const input = document.getElementById('table-pdf')
+  
+    const canvas = await html2canvas(input, {
+      scale: 2
+    })
+  
+    const imgData = canvas.toDataURL('image/png')
+  
+    const pdf = new jsPDF('p', 'mm', 'a4')
+  
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+  
+    const pdfHeight =
+      (canvas.height * pdfWidth) / canvas.width
+  
+    pdf.addImage(
+      imgData,
+      'PNG',
+      0,
+      10,
+      pdfWidth,
+      pdfHeight
+    )
+  
+    pdf.save(`gap-report-${subjectId}.pdf`)
+  }
 
   useEffect(() => {
     axios.get(`/api/reports/${subjectId}`)
@@ -94,8 +126,18 @@ export default function GapReport() {
           </div>
         )}
 
+         // ===== EXPORTAR PARA EL PDF =====
+<div className="flex justify-end mb-4">
+  <button
+    onClick={exportPDF}
+    className="btn-primary text-sm px-4 py-2"
+  >
+    Descargar PDF
+  </button>
+</div>
+
         {/* Category breakdown table */}
-        <div className="card">
+        <div id="table-pdf" className="card">
           <h2 className="font-bold mb-4">Scores by dimension</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

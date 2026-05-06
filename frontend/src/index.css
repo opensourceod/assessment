@@ -28,3 +28,7 @@
     @apply block text-sm font-medium text-dark mb-1;
   }
 }
+#table-pdf{
+  background: white;
+  padding: 20px;
+}

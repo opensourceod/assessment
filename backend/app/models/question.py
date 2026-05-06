@@ -9,14 +9,15 @@ class FormType(str, enum.Enum):
 
 
 class QuestionCategory(str, enum.Enum):
+    
+    Impact = "Impact"
     Social_interest = "Social Interest"
-    Technical_Interest = "Technical Interest"
-    Influence_interest = "Influence Interest"
     Social_OD = "Social OD"
     Technical = "Technical"
     Influence = "OD Competencies Influence"
-    Impact = "Impact"
-
+    Approach="Approach"
+    Technical_Interest = "Technical Interest"
+    Influence_interest = "Influence Interest"
 
 
 class Question(Base):
