@@ -51,6 +51,26 @@ export default function Home() {
         </p>
       </div>
 
+      {/* How it works */}
+      <div className="max-w-4xl mx-auto py-16 px-6 border-t border-gray-100">
+        <h2 className="text-2xl font-bold text-center mb-10">How it works</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            { step: '01', title: 'Register', desc: 'Select the assessment type and enter your details.' },
+            { step: '02', title: 'Invite evaluators', desc: 'Add colleagues or friends (for 360) or proceed to your own self-assessment.' },
+            { step: '03', title: 'See your report', desc: 'Once data is collected, view your interactive analysis and gap reports.' },
+          ].map(item => (
+            <div key={item.step} className="card text-center">
+              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 font-bold text-dark">
+                {item.step}
+              </div>
+              <h3 className="font-bold mb-2">{item.title}</h3>
+              <p className="text-sm text-muted leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Registration form */}
       <div className="bg-white border-t border-gray-100 py-16 px-6">
         <div className="max-w-md mx-auto">
@@ -136,25 +156,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* How it works */}
-      <div className="max-w-4xl mx-auto py-16 px-6 border-t border-gray-100">
-        <h2 className="text-2xl font-bold text-center mb-10">How it works</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { step: '01', title: 'Register', desc: 'Select the assessment type and enter your details.' },
-            { step: '02', title: 'Invite evaluators', desc: 'Add colleagues or friends (for 360) or proceed to your own self-assessment.' },
-            { step: '03', title: 'See your report', desc: 'Once data is collected, view your interactive analysis and gap reports.' },
-          ].map(item => (
-            <div key={item.step} className="card text-center">
-              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 font-bold text-dark">
-                {item.step}
-              </div>
-              <h3 className="font-bold mb-2">{item.title}</h3>
-              <p className="text-sm text-muted leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
