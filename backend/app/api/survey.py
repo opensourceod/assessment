@@ -66,8 +66,12 @@ def enviar_survey(token: str, data: AnswerSubmit, db: Session = Depends(get_db))
         raise HTTPException(status_code=410, detail="Survey already completed")
 
     form_type = evaluador.sujeto.form_type
+    if form_type == FormType.most_360 or form_type == FormType.most_2_0:
+        question_type = FormType.most_2_0
+    else:
+        question_type = form_type
     preguntas_ids = {
-        p.id for p in db.query(Question).filter(Question.form_type == _question_form_type(form_type)).all()
+        p.id for p in db.query(Question).filter(Question.form_type == question_type).all()
     }
     if len(data.respuestas) != len(preguntas_ids):
         raise HTTPException(status_code=422, detail="Must answer all questions")

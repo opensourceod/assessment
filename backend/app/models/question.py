@@ -15,7 +15,6 @@ class QuestionCategory(str, enum.Enum):
     Social_OD = "Social OD"
     Technical = "Technical"
     Influence = "OD Competencies Influence"
-    Approach = "Leadership"
     Impact = "Impact"
 
 
