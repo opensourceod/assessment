@@ -142,6 +142,10 @@ def enviar_self_survey(token: str, data: SelfAnswerSubmit, db: Session = Depends
     if len(data.respuestas) != len(preguntas_ids):
         raise HTTPException(status_code=422, detail="Must answer all questions")
 
+    # Remove any previously saved (incomplete) answers before re-inserting.
+    # Guards against partial submissions caused by crashes or browser retries.
+    db.query(SelfAnswer).filter(SelfAnswer.subject_id == sujeto.id).delete()
+
     for item in data.respuestas:
         if item.pregunta_id not in preguntas_ids:
             raise HTTPException(status_code=422, detail=f"Invalid question id: {item.pregunta_id}")

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, CheckConstraint
+from sqlalchemy import Column, Integer, Float, ForeignKey, CheckConstraint, UniqueConstraint
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -15,6 +15,7 @@ class Answer(Base):
 
     __table_args__ = (
         CheckConstraint("puntaje >= 0 AND puntaje <= 100", name="check_puntaje_rango"),
+        UniqueConstraint("evaluador_id", "pregunta_id", name="uq_respuesta_evaluador_pregunta"),
     )
 
     evaluador = relationship("Evaluator", back_populates="respuestas")
@@ -33,6 +34,7 @@ class SelfAnswer(Base):
 
     __table_args__ = (
         CheckConstraint("puntaje >= 0 AND puntaje <= 100", name="check_self_puntaje_rango"),
+        UniqueConstraint("subject_id", "pregunta_id", name="uq_self_respuesta_subject_pregunta"),
     )
 
     sujeto = relationship("Subject", back_populates="self_respuestas")
