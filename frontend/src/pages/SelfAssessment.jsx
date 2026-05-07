@@ -34,11 +34,17 @@ export default function SelfAssessment() {
   function downloadPDF() {
     const doc = new jsPDF()
 
-    // Título
+    // ===============================
+    // TITULO
+    // ===============================
+
     doc.setFontSize(18)
     doc.text('MOST 2.0 Results', 20, 20)
 
-    // Información general
+    // ===============================
+    // INFORMACION GENERAL
+    // ===============================
+
     doc.setFontSize(12)
 
     doc.text(
@@ -48,12 +54,7 @@ export default function SelfAssessment() {
     )
 
     doc.text(
-      `Email: ${
-        data?.mail ||
-        data?.email ||
-        data?.correo ||
-        'No email'
-      }`,
+      `Email: ${data?.email || 'No email'}`,
       20,
       43
     )
@@ -64,9 +65,151 @@ export default function SelfAssessment() {
       51
     )
 
-    let y = 70
+    // ===============================
+    // CALCULOS GENERALES
+    // ===============================
 
-    // Preguntas y respuestas
+    const puntajes = respuestasPDF.map(
+      r => Number(r.puntaje) || 0
+    )
+
+    const sumaTotal = puntajes.reduce(
+      (acc, value) => acc + value,
+      0
+    )
+
+    const promedioGeneral =
+      puntajes.length > 0
+        ? (
+            sumaTotal / puntajes.length
+          ).toFixed(2)
+        : 0
+
+    // ===============================
+    // PUNTAJES INDIVIDUALES
+    // ===============================
+
+    const p1 = Number(respuestasPDF[0]?.puntaje || 0)
+    const p2 = Number(respuestasPDF[1]?.puntaje || 0)
+    const p3 = Number(respuestasPDF[2]?.puntaje || 0)
+
+    const p4 = Number(respuestasPDF[3]?.puntaje || 0)
+    const p5 = Number(respuestasPDF[4]?.puntaje || 0)
+    const p6 = Number(respuestasPDF[5]?.puntaje || 0)
+
+    const p7 = Number(respuestasPDF[6]?.puntaje || 0)
+    const p8 = Number(respuestasPDF[7]?.puntaje || 0)
+    const p9 = Number(respuestasPDF[8]?.puntaje || 0)
+
+    const p10 = Number(respuestasPDF[9]?.puntaje || 0)
+    const p11 = Number(respuestasPDF[10]?.puntaje || 0)
+    const p12 = Number(respuestasPDF[11]?.puntaje || 0)
+
+    const p13 = Number(respuestasPDF[12]?.puntaje || 0)
+    const p14 = Number(respuestasPDF[13]?.puntaje || 0)
+    const p15 = Number(respuestasPDF[14]?.puntaje || 0)
+
+    const p16 = Number(respuestasPDF[15]?.puntaje || 0)
+    const p17 = Number(respuestasPDF[16]?.puntaje || 0)
+    const p18 = Number(respuestasPDF[17]?.puntaje || 0)
+
+    const p19 = Number(respuestasPDF[18]?.puntaje || 0)
+    const p20 = Number(respuestasPDF[19]?.puntaje || 0)
+    const p21 = Number(respuestasPDF[20]?.puntaje || 0)
+
+    const p22 = Number(respuestasPDF[21]?.puntaje || 0)
+    const p23 = Number(respuestasPDF[22]?.puntaje || 0)
+    const p24 = Number(respuestasPDF[23]?.puntaje || 0)
+
+    const p25 = Number(respuestasPDF[24]?.puntaje || 0)
+    const p26 = Number(respuestasPDF[25]?.puntaje || 0)
+
+    
+// ===============================
+// CALCULOS MOST 2.0 (CORRECTO)
+// ===============================
+
+const avg = (arr) =>
+  arr.reduce((a, b) => a + b, 0) / arr.length
+
+const social_interest =
+  avg([p6, p7, p8]).toFixed(2)
+
+const social_strength =
+  avg([p6, p7, p8, p9, p10, p11, p12, p13, p14]).toFixed(2)
+
+const technical_interest =
+  avg([p9, p10, p11]).toFixed(2)
+
+const technical_strength =
+  avg([p9, p10, p11, p12, p13, p14, p15, p16, p17]).toFixed(2)
+
+const influence_interest =
+  avg([p18, p19, p20]).toFixed(2)
+
+const influence_strength =
+    avg([p18, p19, p20, p21, p22, p23, p24,p25, p26]).toFixed(2)
+
+    // ===============================
+    // MOSTRAR RESULTADOS EN PDF
+    // ===============================
+
+    doc.setFontSize(13)
+
+    doc.text(
+      `Total Score: ${sumaTotal}`,
+      20,
+      65
+    )
+
+    doc.text(
+      `Average Score: ${promedioGeneral}%`,
+      20,
+      73
+    )
+
+    doc.text(
+      `Social Interest: ${social_interest}%`, 
+      20,
+      85
+    )
+
+    doc.text(
+      `Social Strength: ${social_strength}%`,
+      20,
+      93
+    )
+
+    doc.text(
+      `Technical Interest: ${technical_interest}%`,
+      20,
+      101
+    )
+
+    doc.text(
+      `Technical Strength: ${technical_strength}%`,
+      20,
+      109
+    )
+
+    doc.text(
+      `Influence Interest: ${influence_interest}%`,
+      20,
+      117
+    )
+
+    doc.text(
+      `Influence Strength: ${influence_strength}%`,
+      20,
+      125
+    )
+
+    // ===============================
+    // PREGUNTAS
+    // ===============================
+
+    let y = 145
+
     respuestasPDF.forEach((respuesta, index) => {
       const pregunta = data?.preguntas?.find(
         p => p.id === respuesta.pregunta_id
@@ -77,19 +220,29 @@ export default function SelfAssessment() {
         pregunta?.pregunta ||
         'Pregunta no encontrada'
 
-      // Divide texto largo
-      const preguntaSplit = doc.splitTextToSize(
-        `${index + 1}. ${textoPregunta}`,
-        170
+      // Ajustar texto largo
+      const preguntaSplit =
+        doc.splitTextToSize(
+          `${index + 1}. ${textoPregunta}`,
+          170
+        )
+
+      // Nueva página
+      if (y > 270) {
+        doc.addPage()
+        y = 20
+      }
+
+      // Pregunta
+      doc.text(
+        preguntaSplit,
+        20,
+        y
       )
 
-      // Imprimir pregunta
-      doc.text(preguntaSplit, 20, y)
-
-      // Espacio usado por pregunta
       y += preguntaSplit.length * 7
 
-      // Imprimir respuesta
+      // Respuesta
       doc.text(
         `Respuesta: ${respuesta.puntaje}%`,
         30,
@@ -97,16 +250,15 @@ export default function SelfAssessment() {
       )
 
       y += 15
-
-      // Salto de página
-      if (y > 270) {
-        doc.addPage()
-        y = 20
-      }
     })
 
-    // Descargar PDF
-    doc.save(`MOST20_${data?.nombre}.pdf`)
+    // ===============================
+    // DESCARGAR PDF
+    // ===============================
+
+    doc.save(
+      `MOST20_${data?.nombre}.pdf`
+    )
   }
 
   async function handleSubmit(respuestas) {
@@ -128,7 +280,10 @@ export default function SelfAssessment() {
     }
   }
 
-  // Loading
+  // ===============================
+  // LOADING
+  // ===============================
+
   if (estado === 'loading') {
     return (
       <CenteredMessage>
@@ -137,7 +292,10 @@ export default function SelfAssessment() {
     )
   }
 
-  // Already completed
+  // ===============================
+  // ALREADY COMPLETED
+  // ===============================
+
   if (estado === 'already_done') {
     return (
       <CenteredMessage>
@@ -152,7 +310,10 @@ export default function SelfAssessment() {
     )
   }
 
-  // Error
+  // ===============================
+  // ERROR
+  // ===============================
+
   if (estado === 'error') {
     return (
       <CenteredMessage>
@@ -167,7 +328,10 @@ export default function SelfAssessment() {
     )
   }
 
-  // Pantalla final MOST 2.0
+  // ===============================
+  // FINAL SCREEN MOST 2.0
+  // ===============================
+
   if (completado) {
     return (
       <CenteredMessage>
