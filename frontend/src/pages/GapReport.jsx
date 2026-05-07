@@ -126,7 +126,7 @@ export default function GapReport() {
           </div>
         )}
 
-         // ===== EXPORTAR PARA EL PDF =====
+         
 <div className="flex justify-end mb-4">
   <button
     onClick={exportPDF}
