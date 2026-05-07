@@ -123,6 +123,27 @@ export default function SelfAssessment() {
 
     const p25 = Number(respuestasPDF[24]?.puntaje || 0)
     const p26 = Number(respuestasPDF[25]?.puntaje || 0)
+    const p27 = Number(respuestasPDF[26]?.puntaje || 0)
+
+    const p28 = Number(respuestasPDF[27]?.puntaje || 0)
+    const p29 = Number(respuestasPDF[28]?.puntaje || 0)
+    const p30 = Number(respuestasPDF[29]?.puntaje || 0)
+
+    const p31 = Number(respuestasPDF[30]?.puntaje || 0)
+    const p32 = Number(respuestasPDF[31]?.puntaje || 0)
+    const p33 = Number(respuestasPDF[32]?.puntaje || 0)
+
+    const p34 = Number(respuestasPDF[33]?.puntaje || 0)
+    const p35 = Number(respuestasPDF[34]?.puntaje || 0)
+    const p36 = Number(respuestasPDF[35]?.puntaje || 0)
+
+    const p37 = Number(respuestasPDF[36]?.puntaje || 0)
+    const p38 = Number(respuestasPDF[37]?.puntaje || 0)
+    const p39 = Number(respuestasPDF[38]?.puntaje || 0)
+
+    const p40 = Number(respuestasPDF[39]?.puntaje || 0)
+    const p41 = Number(respuestasPDF[40]?.puntaje || 0)
+ 
 
     
 // ===============================
@@ -136,19 +157,19 @@ const social_interest =
   avg([p6, p7, p8]).toFixed(2)
 
 const social_strength =
-  avg([p6, p7, p8, p9, p10, p11, p12, p13, p14]).toFixed(2)
+  avg([p15, p16, p17, p18, p19, p20, p21, p22, p23]).toFixed(2)
 
 const technical_interest =
   avg([p9, p10, p11]).toFixed(2)
 
 const technical_strength =
-  avg([p9, p10, p11, p12, p13, p14, p15, p16, p17]).toFixed(2)
+  avg([p24, p25, p26, p27, p28, p29, p30, p31, p32]).toFixed(2)
 
 const influence_interest =
-  avg([p18, p19, p20]).toFixed(2)
+  avg([p12, p13, p14]).toFixed(2)
 
 const influence_strength =
-    avg([p18, p19, p20, p21, p22, p23, p24,p25, p26]).toFixed(2)
+    avg([p33, p34, p35, p36,p37,p38,p39,p40, p41]).toFixed(2)
 
     // ===============================
     // MOSTRAR RESULTADOS EN PDF
