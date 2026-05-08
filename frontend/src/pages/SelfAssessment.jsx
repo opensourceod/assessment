@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import StepForm from '../components/StepForm'
 import axios from '../api/client'
+
 import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 export default function SelfAssessment() {
   const { token } = useParams()
@@ -17,8 +19,6 @@ export default function SelfAssessment() {
     axios
       .get(`/api/self/${token}`)
       .then(res => {
-        console.log(res.data)
-
         setData(res.data)
         setEstado('ready')
       })
@@ -31,279 +31,573 @@ export default function SelfAssessment() {
       })
   }, [token])
 
-  function downloadPDF() {
-    const doc = new jsPDF()
+  // ==========================================
+  // PDF PROFESIONAL MOST 2.0
+  // ==========================================
 
-    // ===============================
-    // TITULO
-    // ===============================
+  function downloadPDF() {
+    const doc = new jsPDF('p', 'mm', 'a4')
+
+    const pageWidth =
+      doc.internal.pageSize.getWidth()
+
+    const pageHeight =
+      doc.internal.pageSize.getHeight()
+
+    // ==========================================
+    // COLORES
+    // ==========================================
+
+    const primary = [249, 115, 22]
+    const dark = [15, 23, 42]
+    const gray = [100, 116, 139]
+    const light = [248, 250, 252]
+
+    // ==========================================
+    // PORTADA
+    // ==========================================
+
+    doc.setFillColor(...primary)
+    doc.rect(0, 0, pageWidth, 65, 'F')
+
+    doc.setTextColor(255, 255, 255)
+
+    doc.setFontSize(30)
+    doc.setFont('helvetica', 'bold')
+
+    doc.text('MOST 2.0', 20, 30)
 
     doc.setFontSize(18)
-    doc.text('MOST 2.0 Results', 20, 20)
+    doc.setFont('helvetica', 'normal')
 
-    // ===============================
-    // INFORMACION GENERAL
-    // ===============================
+    doc.text('Individual Report', 20, 45)
 
-    doc.setFontSize(12)
+    // Nombre
+
+    doc.setTextColor(...dark)
+
+    doc.setFontSize(24)
+    doc.setFont('helvetica', 'bold')
 
     doc.text(
-      `Name: ${data?.nombre || ''}`,
+      data?.nombre || 'Participant',
+      20,
+      95
+    )
+
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...gray)
+
+    doc.text(
+      data?.email || '',
+      20,
+      105
+    )
+
+    doc.text(
+      `Generated: ${new Date().toLocaleDateString()}`,
+      20,
+      113
+    )
+
+    // Texto introductorio
+
+    doc.setTextColor(...dark)
+
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+
+    doc.text(
+      'Congratulations!',
+      20,
+      140
+    )
+
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'normal')
+
+    const intro =
+      `Your MOST 2.0 assessment has been completed successfully. ` +
+      `This report summarizes your competencies, strengths, ` +
+      `interests, and organizational development profile.`
+
+    const splitIntro =
+      doc.splitTextToSize(
+        intro,
+        170
+      )
+
+    doc.text(splitIntro, 20, 150)
+
+    // ==========================================
+    // PAGINA RESULTADOS
+    // ==========================================
+
+    doc.addPage()
+
+    doc.setFontSize(22)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...dark)
+
+    doc.text('Assessment Results', 20, 20)
+
+    // ==========================================
+    // CALCULOS
+    // ==========================================
+
+    const avg = arr =>
+      arr.length
+        ? arr.reduce((a, b) => a + b, 0) /
+          arr.length
+        : 0
+
+    const getScore = index =>
+      Number(
+        respuestasPDF[index]?.puntaje || 0
+      )
+
+    const social_interest = avg([
+      getScore(5),
+      getScore(6),
+      getScore(7)
+    ]).toFixed(2)
+
+    const social_strength = avg([
+      getScore(14),
+      getScore(15),
+      getScore(16),
+      getScore(17),
+      getScore(18),
+      getScore(19),
+      getScore(20),
+      getScore(21),
+      getScore(22)
+    ]).toFixed(2)
+
+    const technical_interest = avg([
+      getScore(8),
+      getScore(9),
+      getScore(10)
+    ]).toFixed(2)
+
+    const technical_strength = avg([
+      getScore(23),
+      getScore(24),
+      getScore(25),
+      getScore(26),
+      getScore(27),
+      getScore(28),
+      getScore(29),
+      getScore(30),
+      getScore(31)
+    ]).toFixed(2)
+
+    const influence_interest = avg([
+      getScore(11),
+      getScore(12),
+      getScore(13)
+    ]).toFixed(2)
+
+    const influence_strength = avg([
+      getScore(32),
+      getScore(33),
+      getScore(34),
+      getScore(35),
+      getScore(36),
+      getScore(37),
+      getScore(38),
+      getScore(39),
+      getScore(40)
+    ]).toFixed(2)
+
+    // ==========================================
+    // TOTAL
+    // ==========================================
+
+   const total =
+  respuestasPDF.reduce(
+    (acc, r) =>
+      acc + Number(r.puntaje || 0),
+    0
+  )
+
+let average =
+  respuestasPDF.length > 0
+    ? total / respuestasPDF.length
+    : 0
+
+// Nunca superar 100
+average = Math.min(average, 100)
+
+average = average.toFixed(2)
+
+    // ==========================================
+    // FUNCION CARD
+    // ==========================================
+
+    function drawCard(
+      title,
+      value,
+      x,
+      y
+    ) {
+      doc.setFillColor(...light)
+
+      doc.roundedRect(
+        x,
+        y,
+        78,
+        35,
+        4,
+        4,
+        'F'
+      )
+
+      doc.setDrawColor(...primary)
+
+      doc.roundedRect(
+        x,
+        y,
+        78,
+        35,
+        4,
+        4
+      )
+
+      doc.setFontSize(11)
+      doc.setTextColor(...gray)
+      doc.setFont(
+        'helvetica',
+        'normal'
+      )
+
+      doc.text(title, x + 5, y + 10)
+
+      doc.setFontSize(20)
+      doc.setTextColor(...dark)
+      doc.setFont(
+        'helvetica',
+        'bold'
+      )
+
+      doc.text(
+        `${value}%`,
+        x + 5,
+        y + 24
+      )
+    }
+
+    // ==========================================
+    // TARJETAS
+    // ==========================================
+
+    drawCard(
+      'Total Score',
+      total,
       20,
       35
     )
 
-    doc.text(
-      `Email: ${data?.email || 'No email'}`,
+    drawCard(
+      'Average Score',
+      average,
+      110,
+      35
+    )
+
+    drawCard(
+      'Social Interest',
+      social_interest,
       20,
-      43
+      80
     )
 
-    doc.text(
-      `Date: ${new Date().toLocaleDateString()}`,
-      20,
-      51
+    drawCard(
+      'Social Strength',
+      social_strength,
+      110,
+      80
     )
 
-    // ===============================
-    // CALCULOS GENERALES
-    // ===============================
-
-    const puntajes = respuestasPDF.map(
-      r => Number(r.puntaje) || 0
-    )
-
-    const sumaTotal = puntajes.reduce(
-      (acc, value) => acc + value,
-      0
-    )
-
-    const promedioGeneral =
-      puntajes.length > 0
-        ? (
-            sumaTotal / puntajes.length
-          ).toFixed(2)
-        : 0
-
-    // ===============================
-    // PUNTAJES INDIVIDUALES
-    // ===============================
-
-    const p1 = Number(respuestasPDF[0]?.puntaje || 0)
-    const p2 = Number(respuestasPDF[1]?.puntaje || 0)
-    const p3 = Number(respuestasPDF[2]?.puntaje || 0)
-
-    const p4 = Number(respuestasPDF[3]?.puntaje || 0)
-    const p5 = Number(respuestasPDF[4]?.puntaje || 0)
-    const p6 = Number(respuestasPDF[5]?.puntaje || 0)
-
-    const p7 = Number(respuestasPDF[6]?.puntaje || 0)
-    const p8 = Number(respuestasPDF[7]?.puntaje || 0)
-    const p9 = Number(respuestasPDF[8]?.puntaje || 0)
-
-    const p10 = Number(respuestasPDF[9]?.puntaje || 0)
-    const p11 = Number(respuestasPDF[10]?.puntaje || 0)
-    const p12 = Number(respuestasPDF[11]?.puntaje || 0)
-
-    const p13 = Number(respuestasPDF[12]?.puntaje || 0)
-    const p14 = Number(respuestasPDF[13]?.puntaje || 0)
-    const p15 = Number(respuestasPDF[14]?.puntaje || 0)
-
-    const p16 = Number(respuestasPDF[15]?.puntaje || 0)
-    const p17 = Number(respuestasPDF[16]?.puntaje || 0)
-    const p18 = Number(respuestasPDF[17]?.puntaje || 0)
-
-    const p19 = Number(respuestasPDF[18]?.puntaje || 0)
-    const p20 = Number(respuestasPDF[19]?.puntaje || 0)
-    const p21 = Number(respuestasPDF[20]?.puntaje || 0)
-
-    const p22 = Number(respuestasPDF[21]?.puntaje || 0)
-    const p23 = Number(respuestasPDF[22]?.puntaje || 0)
-    const p24 = Number(respuestasPDF[23]?.puntaje || 0)
-
-    const p25 = Number(respuestasPDF[24]?.puntaje || 0)
-    const p26 = Number(respuestasPDF[25]?.puntaje || 0)
-    const p27 = Number(respuestasPDF[26]?.puntaje || 0)
-
-    const p28 = Number(respuestasPDF[27]?.puntaje || 0)
-    const p29 = Number(respuestasPDF[28]?.puntaje || 0)
-    const p30 = Number(respuestasPDF[29]?.puntaje || 0)
-
-    const p31 = Number(respuestasPDF[30]?.puntaje || 0)
-    const p32 = Number(respuestasPDF[31]?.puntaje || 0)
-    const p33 = Number(respuestasPDF[32]?.puntaje || 0)
-
-    const p34 = Number(respuestasPDF[33]?.puntaje || 0)
-    const p35 = Number(respuestasPDF[34]?.puntaje || 0)
-    const p36 = Number(respuestasPDF[35]?.puntaje || 0)
-
-    const p37 = Number(respuestasPDF[36]?.puntaje || 0)
-    const p38 = Number(respuestasPDF[37]?.puntaje || 0)
-    const p39 = Number(respuestasPDF[38]?.puntaje || 0)
-
-    const p40 = Number(respuestasPDF[39]?.puntaje || 0)
-    const p41 = Number(respuestasPDF[40]?.puntaje || 0)
- 
-
-    
-// ===============================
-// CALCULOS MOST 2.0 (CORRECTO)
-// ===============================
-
-const avg = (arr) =>
-  arr.reduce((a, b) => a + b, 0) / arr.length
-
-const social_interest =
-  avg([p6, p7, p8]).toFixed(2)
-
-const social_strength =
-  avg([p15, p16, p17, p18, p19, p20, p21, p22, p23]).toFixed(2)
-
-const technical_interest =
-  avg([p9, p10, p11]).toFixed(2)
-
-const technical_strength =
-  avg([p24, p25, p26, p27, p28, p29, p30, p31, p32]).toFixed(2)
-
-const influence_interest =
-  avg([p12, p13, p14]).toFixed(2)
-
-const influence_strength =
-    avg([p33, p34, p35, p36,p37,p38,p39,p40, p41]).toFixed(2)
-
-    // ===============================
-    // MOSTRAR RESULTADOS EN PDF
-    // ===============================
-
-    doc.setFontSize(13)
-
-    doc.text(
-      `Total Score: ${sumaTotal}`,
-      20,
-      65
-    )
-
-    doc.text(
-      `Average Score: ${promedioGeneral}%`,
-      20,
-      73
-    )
-
-    doc.text(
-      `Social Interest: ${social_interest}%`, 
-      20,
-      85
-    )
-
-    doc.text(
-      `Social Strength: ${social_strength}%`,
-      20,
-      93
-    )
-
-    doc.text(
-      `Technical Interest: ${technical_interest}%`,
-      20,
-      101
-    )
-
-    doc.text(
-      `Technical Strength: ${technical_strength}%`,
-      20,
-      109
-    )
-
-    doc.text(
-      `Influence Interest: ${influence_interest}%`,
-      20,
-      117
-    )
-
-    doc.text(
-      `Influence Strength: ${influence_strength}%`,
+    drawCard(
+      'Technical Interest',
+      technical_interest,
       20,
       125
     )
 
-    // ===============================
-    // PREGUNTAS
-    // ===============================
+    drawCard(
+      'Technical Strength',
+      technical_strength,
+      110,
+      125
+    )
 
-    let y = 145
+    drawCard(
+      'Influence Interest',
+      influence_interest,
+      20,
+      170
+    )
 
-    respuestasPDF.forEach((respuesta, index) => {
-      const pregunta = data?.preguntas?.find(
-        p => p.id === respuesta.pregunta_id
+    drawCard(
+      'Influence Strength',
+      influence_strength,
+      110,
+      170
+    )
+
+    // ==========================================
+    // PAGINA DOMINIOS
+    // ==========================================
+
+    doc.addPage()
+
+    doc.setFontSize(22)
+    doc.setTextColor(...dark)
+    doc.setFont('helvetica', 'bold')
+
+    doc.text(
+      'Competency Domains',
+      20,
+      20
+    )
+
+    function drawProgressBar(
+      label,
+      value,
+      y
+    ) {
+      doc.setFontSize(12)
+      doc.setFont(
+        'helvetica',
+        'bold'
       )
 
-      const textoPregunta =
-        pregunta?.texto ||
-        pregunta?.pregunta ||
-        'Pregunta no encontrada'
+      doc.text(label, 20, y)
 
-      // Ajustar texto largo
-      const preguntaSplit =
-        doc.splitTextToSize(
-          `${index + 1}. ${textoPregunta}`,
-          170
-        )
+      // Fondo
 
-      // Nueva página
-      if (y > 270) {
-        doc.addPage()
-        y = 20
-      }
+      doc.setFillColor(230, 230, 230)
 
-      // Pregunta
-      doc.text(
-        preguntaSplit,
+      doc.roundedRect(
         20,
-        y
+        y + 5,
+        160,
+        8,
+        4,
+        4,
+        'F'
       )
 
-      y += preguntaSplit.length * 7
+      // Progreso
 
-      // Respuesta
+      doc.setFillColor(...primary)
+
+      doc.roundedRect(
+        20,
+        y + 5,
+        (160 * Number(value)) / 100,
+        8,
+        4,
+        4,
+        'F'
+      )
+
+      doc.setFontSize(10)
+
       doc.text(
-        `Respuesta: ${respuesta.puntaje}%`,
-        30,
-        y
+        `${value}%`,
+        185,
+        y + 10
+      )
+    }
+
+    drawProgressBar(
+      'Social Interest',
+      social_interest,
+      40
+    )
+
+    drawProgressBar(
+      'Social Strength',
+      social_strength,
+      65
+    )
+
+    drawProgressBar(
+      'Technical Interest',
+      technical_interest,
+      90
+    )
+
+    drawProgressBar(
+      'Technical Strength',
+      technical_strength,
+      115
+    )
+
+    drawProgressBar(
+      'Influence Interest',
+      influence_interest,
+      140
+    )
+
+    drawProgressBar(
+      'Influence Strength',
+      influence_strength,
+      165
+    )
+
+    // ==========================================
+    // PAGINA RESPUESTAS
+    // ==========================================
+
+    doc.addPage()
+
+    doc.setFontSize(22)
+    doc.setTextColor(...dark)
+    doc.setFont('helvetica', 'bold')
+
+    doc.text(
+      'Assessment Responses',
+      20,
+      20
+    )
+
+    const rows =
+      respuestasPDF.map(
+        (respuesta, index) => {
+          const pregunta =
+            data?.preguntas?.find(
+              p =>
+                p.id ===
+                respuesta.pregunta_id
+            )
+
+          return [
+            index + 1,
+            pregunta?.texto ||
+              pregunta?.pregunta ||
+              'Question not found',
+            `${respuesta.puntaje}%`
+          ]
+        }
       )
 
-      y += 15
+    autoTable(doc, {
+      startY: 30,
+
+      head: [
+        [
+          '#',
+          'Question',
+          'Score'
+        ]
+      ],
+
+      body: rows,
+
+      styles: {
+        fontSize: 9,
+        cellPadding: 4
+      },
+
+      headStyles: {
+        fillColor: primary,
+        textColor: [255, 255, 255]
+      },
+
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      },
+
+      columnStyles: {
+        0: {
+          cellWidth: 12
+        },
+
+        1: {
+          cellWidth: 140
+        },
+
+        2: {
+          halign: 'center',
+          cellWidth: 25
+        }
+      }
     })
 
-    // ===============================
-    // DESCARGAR PDF
-    // ===============================
+    // ==========================================
+    // FOOTER
+    // ==========================================
+
+    const totalPages =
+      doc.getNumberOfPages()
+
+    for (
+      let i = 1;
+      i <= totalPages;
+      i++
+    ) {
+      doc.setPage(i)
+
+      doc.setFontSize(10)
+      doc.setTextColor(...gray)
+
+      doc.text(
+        `MOST 2.0 Report`,
+        20,
+        pageHeight - 10
+      )
+
+      doc.text(
+        `Page ${i} of ${totalPages}`,
+        pageWidth - 45,
+        pageHeight - 10
+      )
+    }
+
+    // ==========================================
+    // DESCARGAR
+    // ==========================================
 
     doc.save(
       `MOST20_${data?.nombre}.pdf`
     )
   }
 
-  async function handleSubmit(respuestas) {
-    console.log(respuestas)
+  // ==========================================
+  // SUBMIT
+  // ==========================================
 
+  async function handleSubmit(
+    respuestas
+  ) {
     setRespuestasPDF(respuestas)
 
-    const { data: result } = await axios.post(
-      `/api/self/${token}/submit`,
-      { respuestas }
-    )
+    const { data: result } =
+      await axios.post(
+        `/api/self/${token}/submit`,
+        { respuestas }
+      )
 
-    // MOST 2.0
-    if (data?.form_type === 'most_2.0') {
+    if (
+      data?.form_type ===
+      'most_2.0'
+    ) {
       setCompletado(true)
     } else {
-      // MOST 360
-      navigate(`/dashboard/${result.subject_id}`)
+      navigate(
+        `/dashboard/${result.subject_id}`
+      )
     }
   }
 
-  // ===============================
+  // ==========================================
   // LOADING
-  // ===============================
+  // ==========================================
 
   if (estado === 'loading') {
     return (
@@ -313,9 +607,9 @@ const influence_strength =
     )
   }
 
-  // ===============================
-  // ALREADY COMPLETED
-  // ===============================
+  // ==========================================
+  // COMPLETADO
+  // ==========================================
 
   if (estado === 'already_done') {
     return (
@@ -325,15 +619,16 @@ const influence_strength =
         </h2>
 
         <p className="text-muted text-sm">
-          You have already submitted your self-assessment.
+          You have already submitted
+          your self-assessment.
         </p>
       </CenteredMessage>
     )
   }
 
-  // ===============================
+  // ==========================================
   // ERROR
-  // ===============================
+  // ==========================================
 
   if (estado === 'error') {
     return (
@@ -343,15 +638,16 @@ const influence_strength =
         </h2>
 
         <p className="text-muted text-sm">
-          This self-assessment link is invalid or has expired.
+          This self-assessment link is
+          invalid or has expired.
         </p>
       </CenteredMessage>
     )
   }
 
-  // ===============================
-  // FINAL SCREEN MOST 2.0
-  // ===============================
+  // ==========================================
+  // FINAL
+  // ==========================================
 
   if (completado) {
     return (
@@ -373,12 +669,17 @@ const influence_strength =
         </div>
 
         <h2 className="text-xl font-bold mb-2">
-          ¡Assessment completed!
+          Assessment completed!
         </h2>
 
         <p className="text-muted text-sm mb-6">
-          Thank you, <strong>{data?.nombre}</strong>.
-          Your MOST 2.0 responses have been recorded.
+          Thank you,
+          <strong>
+            {' '}
+            {data?.nombre}
+          </strong>
+          . Your MOST 2.0 responses
+          have been recorded.
         </p>
 
         <button
@@ -391,7 +692,8 @@ const influence_strength =
     )
   }
 
-  const isMost2 = data?.form_type === 'most_2.0'
+  const isMost2 =
+    data?.form_type === 'most_2.0'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -418,10 +720,12 @@ const influence_strength =
       <div className="max-w-2xl mx-auto py-10 px-6">
         <div className="card mb-6 bg-cyan-50 border-cyan-200">
           <p className="text-sm text-dark">
-            <strong>Instructions:</strong>{' '}
+            <strong>
+              Instructions:
+            </strong>{' '}
             {isMost2
               ? 'Answer each question honestly. Your results will be available once processed.'
-              : 'Answer honestly based on your current work environment. This is your baseline — it will be compared against your evaluators responses to reveal gaps and growth opportunities.'}
+              : 'Answer honestly based on your current work environment.'}
           </p>
         </div>
 
@@ -435,7 +739,9 @@ const influence_strength =
   )
 }
 
-function CenteredMessage({ children }) {
+function CenteredMessage({
+  children
+}) {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
       <div className="card max-w-sm w-full text-center">
