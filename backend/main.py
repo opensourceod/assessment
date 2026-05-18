@@ -31,7 +31,7 @@ app.include_router(subjects.router, prefix="/api")
 app.include_router(survey.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
-app.include_router(pruebas_email.router)
+app.include_router(pruebas_email.router, prefix="/api")
 
 
 @app.get("/")

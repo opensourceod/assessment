@@ -7,7 +7,10 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 import logo from '../assets/osod.png'
+import most from '../assets/most.png'
 import banner from '../assets/banner.png'
+
+
 
 export default function SelfAssessment() {
   const { token } = useParams()
@@ -32,6 +35,7 @@ export default function SelfAssessment() {
     axios
       .get(`/api/self/${token}`)
       .then(res => {
+        console.log(res.data)
         setData(res.data)
 
         setEstado('ready')
@@ -51,12 +55,15 @@ export default function SelfAssessment() {
   // PDF PROFESIONAL MOST 2.0
   // ==========================================
 
-  function downloadPDF() {
-    const doc = new jsPDF(
-      'p',
-      'mm',
-      'a4'
-    )
+  async function downloadPDF() {
+    
+ const doc = new jsPDF(
+  'p',
+  'mm',
+  'a4'
+)
+
+
 
     const pageWidth =
       doc.internal.pageSize.getWidth()
@@ -109,7 +116,6 @@ export default function SelfAssessment() {
         'F'
       )
 
-      // Logo
 
       doc.addImage(
         logo,
@@ -423,11 +429,23 @@ export default function SelfAssessment() {
       'normal'
     )
 
+    doc.addImage(
+        logo,
+        'PNG',
+        18,
+        12,
+        48,
+        20
+      )
+
+      
+
     doc.text(
       'Individual Assessment Report',
       20,
       90
     )
+    
 
     // White card
 
@@ -760,41 +778,142 @@ drawFooter(3)
 
     drawFooter(4)
 
-    // ==========================================
-    // SAVE
-    // ==========================================
+  // ==========================================
+// GENERAR PDF
+// ==========================================
 
-    doc.save(
-      `MOST20_${data?.nombre}.pdf`
-    )
+const pdfBlob = new Blob(
+  [doc.output('arraybuffer')],
+  {
+    type: 'application/pdf'
   }
+)
 
+// Descargar PDF
+doc.save(
+  `MOST20_${data?.nombre}.pdf`
+)
+
+// ==========================================
+// ENVIAR PDF AL BACKEND
+// ==========================================
+
+const formData =
+  new FormData()
+
+formData.append(
+  'pdf',
+  pdfBlob,
+  `MOST20_${data?.nombre}.pdf`
+)
+
+formData.append(
+  'nombre',
+  data?.nombre
+)
+
+formData.append(
+  'email',
+  data?.email
+)
+
+formData.append(
+  'average',
+  average
+)
+
+formData.append(
+  'social_interest',
+  social_interest
+)
+
+formData.append(
+  'social_strength',
+  social_strength
+)
+
+formData.append(
+  'technical_interest',
+  technical_interest
+)
+
+formData.append(
+  'technical_strength',
+  technical_strength
+)
+
+formData.append(
+  'influence_interest',
+  influence_interest
+)
+
+formData.append(
+  'influence_strength',
+  influence_strength
+)
+
+
+console.log('EMAIL:', data?.email)
+try {
+  await axios.post(
+    '/api/send-pdf-email',
+    formData,
+    {
+      headers: {
+        'Content-Type':
+          'multipart/form-data'
+      }
+    }
+  )
+
+  console.log(
+    'Correo enviado correctamente'
+  )
+} catch (error) {
+  console.error(
+    'Error enviando correo:',
+    error
+  )
+}
+}
   // ==========================================
   // SUBMIT
   // ==========================================
 
   async function handleSubmit(
-    respuestas
+  respuestas
+) {
+
+  setRespuestasPDF(respuestas)
+
+  const { data: result } =
+    await axios.post(
+      `/api/self/${token}/submit`,
+      { respuestas }
+    )
+
+  console.log(
+    'FORM TYPE:',
+    data?.form_type
+  )
+
+  // MOST 2.0
+  if (
+    String(data?.form_type)
+      .toLowerCase()
+      .includes('most')
   ) {
-    setRespuestasPDF(respuestas)
 
-    const { data: result } =
-      await axios.post(
-        `/api/self/${token}/submit`,
-        { respuestas }
-      )
+    setCompletado(true)
 
-    if (
-      data?.form_type ===
-      'most_2.0'
-    ) {
-      setCompletado(true)
-    } else {
-      navigate(
-        `/dashboard/${result.subject_id}`
-      )
-    }
+    return
   }
+
+  // SOLO 360
+  navigate(
+    `/dashboard/${result.subject_id}`
+  )
+}
 
   // ==========================================
   // LOADING
@@ -847,108 +966,150 @@ drawFooter(3)
   }
 
   // ==========================================
-  // FINAL SCREEN
-  // ==========================================
+// FINAL SCREEN
+// ==========================================
 
-  if (completado) {
-    return (
-      <CenteredMessage>
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#16a34a"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
-        </div>
-
-        <h2 className="text-xl font-bold mb-2">
-          Assessment completed!
-        </h2>
-
-        <p className="text-muted text-sm mb-6">
-          Thank you,
-          <strong>
-            {' '}
-            {data?.nombre}
-          </strong>
-          . Your MOST 2.0 responses
-          have been recorded.
-        </p>
-
-        <button
-          onClick={downloadPDF}
-          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition"
-        >
-          Descargar PDF
-        </button>
-      </CenteredMessage>
-    )
-  }
-
-  const isMost2 =
-    data?.form_type ===
-    'most_2.0'
+if (completado) {
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-dark text-white px-6 py-8 text-center">
-        <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">
-          {isMost2
-            ? 'MOST 2.0 Assessment'
-            : '360 MOST Assessment'}
-        </p>
 
-        <h1 className="text-xl font-bold">
-          {isMost2
-            ? `MOST 2.0: ${data.nombre}`
-            : `Self-Assessment: ${data.nombre}`}
-        </h1>
+    <CenteredMessage>
 
-        <p className="text-gray-400 text-sm mt-1">
-          {isMost2
-            ? 'Answer each statement honestly based on your experience.'
-            : 'Rate each statement based on your own experience and perception.'}
-        </p>
+      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#16a34a"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+
       </div>
 
-      <div className="max-w-2xl mx-auto py-10 px-6">
-        <div className="card mb-6 bg-cyan-50 border-cyan-200">
-          <p className="text-sm text-dark">
-            <strong>
-              Instructions:
-            </strong>{' '}
-            {isMost2
-              ? 'Answer each question honestly. Your results will be available once processed.'
-              : 'Answer honestly based on your current work environment.'}
-          </p>
-        </div>
+      <h2 className="text-xl font-bold mb-2">
+        Assessment completed!
+      </h2>
 
-        <StepForm
-          preguntas={data.preguntas}
-          onSubmit={handleSubmit}
-          storageKey={`self_${token}`}
-        />
-      </div>
-    </div>
+      <p className="text-muted text-sm mb-6">
+
+        Thank you,
+
+        <strong>
+          {' '}
+          {data?.nombre}
+        </strong>
+
+        . Your MOST 2.0 responses have been recorded.
+
+      </p>
+
+      <button
+        onClick={downloadPDF}
+        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition"
+      >
+        Descargar PDF
+      </button>
+
+    </CenteredMessage>
+
   )
 }
 
+// ==========================================
+// MOST / 360
+// ==========================================
+
+const isMost2 = data?.form_type === 'most2'
+const is360 = data?.form_type === '360'
+// ==========================================
+// MAIN
+// ==========================================
+
+return (
+
+  <div className="min-h-screen bg-gray-50">
+
+    <div className="bg-dark text-white px-6 py-8 text-center">
+
+      <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">
+
+        {isMost2
+          ? 'MOST 2.0 Assessment'
+          : '360 MOST Assessment'}
+
+      </p>
+
+      <h1 className="text-xl font-bold">
+
+        
+            {isMost2 && `MOST 2.0: ${data.nombre}`}
+            {is360 && `360 Assessment: ${data.nombre}`}
+
+      </h1>
+
+      <p className="text-gray-400 text-sm mt-1">
+
+        {isMost2
+          ? 'Answer each statement honestly based on your experience.'
+          : 'Rate each statement based on your current work environment.'}
+
+      </p>
+
+    </div>
+
+    <div className="max-w-2xl mx-auto py-10 px-6">
+
+      <div className="card mb-6 bg-cyan-50 border-cyan-200">
+
+        <p className="text-sm text-dark">
+
+          <strong>
+            Instructions:
+          </strong>{' '}
+
+          {isMost2
+            ? 'Answer each question honestly. Your results will be available once processed.'
+            : 'Answer honestly based on your current work environment.'}
+
+        </p>
+
+      </div>
+
+      <StepForm
+        preguntas={data.preguntas}
+        onSubmit={handleSubmit}
+        storageKey={`self_${token}`}
+      />
+
+    </div>
+
+  </div>
+)
+
+  
 function CenteredMessage({
   children
 }) {
+
   return (
+
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+
       <div className="card max-w-sm w-full text-center">
+
         {children}
+
       </div>
+
     </div>
+
   )
+}
 }

@@ -92,43 +92,43 @@ def _binary(opt_a, opt_b):
 
 
 PREGUNTAS_MOST_2_0 = [
-    # --- Section 1: Would you rather (organizational focus) Q1-Q5 ---
-    (1, "Would you rather engage in...", QuestionCategory.Impact,
-     _binary(
-         "Developing competitive organizational strategies and performance.",
-         "Developing sustainable strategies that help to improve our society and environment.",
-     )),
-    (2, "Would you rather engage in...", QuestionCategory.Impact,
-     _binary(
-         "Developing competitive organizational strategies and performance.",
-         "Developing sustainable strategies that help to improve our society and environment.",
-     )),
-    (3, "Would you rather engage in...", QuestionCategory.Impact,
-     _binary(
-         "Attracting and retaining top talent who contribute to healthy organizational cultures and increase organizational performance.",
-         "Facilitating social change for those who are treated unfairly due to differences including but not limited to economic disparity.",
-     )),
-    (4, "Would you rather engage in...", QuestionCategory.Impact,
-     _binary(
-         "Helping employees develop healthy relationships for effective team performance.",
-         "Helping underprivileged communities develop access to resources such as education.",
-     )),
-    (5, "Would you rather engage in...", QuestionCategory.Impact,
-     _binary(
-         "Designing workplaces that promote well-being and resilience for employees.",
-         "Leading effective change for a more humane, fair, and civil society.",
-     )),
+  # --- Section 1: Would you rather (organizational focus) Q1-Q5 ---
+# ---(1, "Would you rather engage in...", QuestionCategory.Impact,
+#     _binary(
+#         "Developing competitive organizational strategies and performance.",
+#         "Developing sustainable strategies that help to improve our society and environment.",
+#     )),
+# (2, "Would you rather engage in...", QuestionCategory.Impact,
+#     _binary(
+#         "Developing competitive organizational strategies and performance.",
+#         "Developing sustainable strategies that help to improve our society and environment.",
+#     )),
+# (3, "Would you rather engage in...", QuestionCategory.Impact,
+#     _binary(
+#         "Attracting and retaining top talent who contribute to healthy organizational cultures and increase organizational performance.",
+#         "Facilitating social change for those who are treated unfairly due to differences including but not limited to economic disparity.",
+#     )),
+# (4, "Would you rather engage in...", QuestionCategory.Impact,
+#     _binary(
+#         "Helping employees develop healthy relationships for effective team performance.",
+#         "Helping underprivileged communities develop access to resources such as education.",
+#     )),
+# (5, "Would you rather engage in...", QuestionCategory.Impact,
+#     _binary(
+#         "Designing workplaces that promote well-being and resilience for employees.",
+#         "Leading effective change for a more humane, fair, and civil society.",
+#     )),
 
-    # --- Section 2: Ideal Career Preferences Q6-Q14 (Ideal_0_100) ---
-    (6,  "Helping to transform organizational culture, which may be defined as the shared, subconscious expectations that drive behaviors in organizations.", QuestionCategory.Social_interest, IDEAL_0_100),
-    (7,  "Influencing positive and meaningful change through a deep understanding of individual and social psychology.", QuestionCategory.Social_interest, IDEAL_0_100),
-    (8,  "Improving aspects of humanity through the work you do (such as ethics, diversity, inclusion, justice, and equity).", QuestionCategory.Social_interest, IDEAL_0_100),
-    (9,  "Working on organizational strategy, including strategic thinking, planning, and implementation.", QuestionCategory.Technical_Interest, IDEAL_0_100),
-    (10, "Designing and aligning organizational systems, structures, and processes, such as technology, rewards, and organizational design.", QuestionCategory.Technical_Interest, IDEAL_0_100),
-    (11, "Identifying, improving, and managing organizational performance.", QuestionCategory.Technical_Interest, IDEAL_0_100),
-    (12, "Leading and managing change.", QuestionCategory.Influence_interest, IDEAL_0_100),
-    (13, "Consulting and partnering.", QuestionCategory.Influence_interest, IDEAL_0_100),
-    (14, "Facilitating learning, development, and innovation.", QuestionCategory.Influence_interest, IDEAL_0_100),
+    # # --- Section 2: Ideal Career Preferences Q6-Q14 (Ideal_0_100) ---
+    # (6,  "Helping to transform organizational culture, which may be defined as the shared, subconscious expectations that drive behaviors in organizations.", QuestionCategory.Social_interest, IDEAL_0_100),
+    # (7,  "Influencing positive and meaningful change through a deep understanding of individual and social psychology.", QuestionCategory.Social_interest, IDEAL_0_100),
+    # (8,  "Improving aspects of humanity through the work you do (such as ethics, diversity, inclusion, justice, and equity).", QuestionCategory.Social_interest, IDEAL_0_100),
+    # (9,  "Working on organizational strategy, including strategic thinking, planning, and implementation.", QuestionCategory.Technical_Interest, IDEAL_0_100),
+    # (10, "Designing and aligning organizational systems, structures, and processes, such as technology, rewards, and organizational design.", QuestionCategory.Technical_Interest, IDEAL_0_100),
+    # (11, "Identifying, improving, and managing organizational performance.", QuestionCategory.Technical_Interest, IDEAL_0_100),
+    # (12, "Leading and managing change.", QuestionCategory.Influence_interest, IDEAL_0_100),
+    # (13, "Consulting and partnering.", QuestionCategory.Influence_interest, IDEAL_0_100),
+    # (14, "Facilitating learning, development, and innovation.", QuestionCategory.Influence_interest, IDEAL_0_100),
 
     # --- Section 3: Social OD Competencies Q15-Q23 ---
     (15, "Helping leaders identify and address characteristics of organizational culture that can be better aligned with the organization's stated vision, mission, and values.", QuestionCategory.Social_OD, SOCIAL_0_100),
@@ -167,31 +167,31 @@ PREGUNTAS_MOST_2_0 = [
     # (44, "Applying evidence-based OD practices grounded in organizational and social science research.", QuestionCategory.engagement, SOCIAL_0_100),
 
     # --- Section 6: Approach to Change Q45-Q46 ---
-    (42, "Would you rather engage in...", QuestionCategory.Approach,
-     _binary(
-         "Take a step-by-step, scientific approach to change, by facilitating fact finding and objective measurement to drive new employee behaviors.",
-         "Take a subjective approach to change, by inviting employee narratives and facilitating sense-making to inspire new employee mindsets..",
-     )),
-    (43, "Would you rather engage in...", QuestionCategory.Approach,
-     _binary(
-         "Focus on performance issues by examining and addressing inefficient processes..",
-         "Focus on new possibilities by co-developing creative processes..",
-     )),
-    (44, "Would you rather engage in...", QuestionCategory.Approach,
-     _binary(
-         "Address common organizational challenges by planning and facilitating well-tested solutions.",
-         "Make sense of organizational opportunities by opening a space for stakeholders to share their stories.",
-     )),
-    (45, "Would you rather engage in...", QuestionCategory.Approach,
-     _binary(
-         "Help organizations diagnose and fix issues through effective problem solving.",
-         "Help organizations develop processes that generate new insights that increases their collective ability to navigate complex challenges.",
-     )),
-    (46, "Would you rather engage in...", QuestionCategory.Approach,
-     _binary(
-         "Change behaviors.",
-         "Change beliefs.",
-     )),
+    # (42, "Would you rather engage in...", QuestionCategory.Approach,
+    #  _binary(
+    #      "Take a step-by-step, scientific approach to change, by facilitating fact finding and objective measurement to drive new employee behaviors.",
+    #      "Take a subjective approach to change, by inviting employee narratives and facilitating sense-making to inspire new employee mindsets..",
+    #  )),
+    # (43, "Would you rather engage in...", QuestionCategory.Approach,
+    #  _binary(
+    #      "Focus on performance issues by examining and addressing inefficient processes..",
+    #      "Focus on new possibilities by co-developing creative processes..",
+    #  )),
+    # (44, "Would you rather engage in...", QuestionCategory.Approach,
+    #  _binary(
+    #      "Address common organizational challenges by planning and facilitating well-tested solutions.",
+    #      "Make sense of organizational opportunities by opening a space for stakeholders to share their stories.",
+    #  )),
+    # (45, "Would you rather engage in...", QuestionCategory.Approach,
+    #  _binary(
+    #      "Help organizations diagnose and fix issues through effective problem solving.",
+    #      "Help organizations develop processes that generate new insights that increases their collective ability to navigate complex challenges.",
+    #  )),
+    # (46, "Would you rather engage in...", QuestionCategory.Approach,
+    #  _binary(
+    #      "Change behaviors.",
+    #      "Change beliefs.",
+    #  )),
 ]
 
 
