@@ -12,6 +12,7 @@ import banner from '../assets/banner.png'
 
 
 
+
 export default function SelfAssessment() {
   const { token } = useParams()
 
@@ -3668,34 +3669,40 @@ formData.append(
 
 formData.append(
   'social_interest',
-  socialInterest.toString()
+   social_interest.toString()
 )
 
 formData.append(
   'social_strength',
-  socialStrength.toString()
+  social_strength.toString()
 )
 
 formData.append(
   'technical_interest',
-  technicalInterest.toString()
+  technical_interest.toString()
 )
 
 formData.append(
   'technical_strength',
-  technicalStrength.toString()
+  technical_strength.toString()
 )
 
 formData.append(
   'influence_interest',
-  influenceInterest.toString()
+  influence_interest.toString()
 )
 
 formData.append(
   'influence_strength',
-  influenceStrength.toString()
+  influence_strength.toString()
 )
 
+
+
+console.log("FORMDATA CONTENT:")
+for (let pair of formData.entries()) {
+  console.log(pair[0], pair[1])
+}
 // ==========================================
 // SEND EMAIL
 // ==========================================
@@ -3703,15 +3710,9 @@ formData.append(
 try {
 
   const response = await axios.post(
-    '/api/send-pdf-email',
-    formData,
-    {
-      headers: {
-        'Content-Type':
-          'multipart/form-data'
-      }
-    }
-  )
+  '/send-pdf-email',
+  formData
+)
 
   console.log(
     'EMAIL SENT:',
