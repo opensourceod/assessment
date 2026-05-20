@@ -1612,6 +1612,14 @@ drawFooter(7)
 // ==========================================
 // PAGE 8 - TECHNICAL COMPETENCY SCORES
 // ==========================================
+// ==========================================
+// PAGE 8 - TECHNICAL COMPETENCY SCORES
+// ==========================================
+
+// ==========================================
+// PAGE 8 - TECHNICAL COMPETENCY SCORES
+// ==========================================
+
 doc.addPage()
 drawHeader()
 
@@ -1619,11 +1627,80 @@ drawHeader()
 // TITLE
 // ==========================================
 
-doc.setFontSize(20)
+doc.setFontSize(22)
 doc.setTextColor(...dark)
 doc.setFont('helvetica', 'bold')
 
-doc.text('Technical Competency Scores', 20, 72)
+doc.text(
+  'Technical Competency Scores',
+  20,
+  72
+)
+
+// ==========================================
+// SAFE HELPERS
+// ==========================================
+
+const avgPage8 = (arr) => {
+  if (!arr || arr.length === 0) return 0
+
+  return (
+    arr.reduce(
+      (sum, v) => sum + Number(v || 0),
+      0
+    ) / arr.length
+  )
+}
+
+const pdfCalcPage8 = (indexes) => {
+  return avgPage8(
+    indexes.map(i => Number(getScore(i) || 0))
+  ).toFixed(2)
+}
+
+// ==========================================
+// CALCULATED SCORES (100% FROM getScore)
+// ==========================================
+
+// STRATEGY
+const strategy_interest = pdfCalcPage8([8])
+
+const strategy_strength = pdfCalcPage8([
+  23,
+  24,
+  25,
+])
+
+// DESIGN
+const design_interest = pdfCalcPage8([9])
+
+const design_strength = pdfCalcPage8([
+  26,
+  27,
+  28,
+])
+
+// PERFORMANCE
+const performance_interest = pdfCalcPage8([10])
+
+const performance_strength = pdfCalcPage8([
+  29,
+  30,
+  31,
+])
+
+// GLOBAL AVERAGES
+const avgTechnicalInterest = avgPage8([
+  strategy_interest,
+  design_interest,
+  performance_interest,
+]).toFixed(2)
+
+const avgTechnicalStrength = avgPage8([
+  strategy_strength,
+  design_strength,
+  performance_strength,
+]).toFixed(2)
 
 // ==========================================
 // DATA
@@ -1634,90 +1711,119 @@ const technicalCategoriesPage8 = [
     title: 'Strategy',
     description:
       'Aligning resources with strategic goals, continuously developing and assessing strategies, and using diverse planning approaches to ensure adaptable plans in dynamic business environments.',
-    yourInterest: '30.00%',
-    yourStrength: '50.00%',
-    avgInterest: '79.66%',
-    avgStrength: '65.41%',
+
+    yourInterest: `${strategy_interest}%`,
+    yourStrength: `${strategy_strength}%`,
+    avgInterest: `${avgTechnicalInterest}%`,
+    avgStrength: `${avgTechnicalStrength}%`,
   },
   {
     title: 'Design',
     description:
       'Refining systems and structures to enhance individual and team performance and fostering interdepartmental coordination to support a collaborative culture aligned with strategic goals.',
-    yourInterest: '10.00%',
-    yourStrength: '48.33%',
-    avgInterest: '73.54%',
-    avgStrength: '65.33%',
+
+    yourInterest: `${design_interest}%`,
+    yourStrength: `${design_strength}%`,
+    avgInterest: `${avgTechnicalInterest}%`,
+    avgStrength: `${avgTechnicalStrength}%`,
   },
   {
     title: 'Performance',
     description:
       'Ensuring organizations achieve strategic goals using measurable indicators and data-informed interventions that align technical needs with social dynamics, enhancing decision-making and organizational performance.',
-    yourInterest: '0.00%',
-    yourStrength: '59.45%',
-    avgInterest: '74.10%',
-    avgStrength: '62.80%',
+
+    yourInterest: `${performance_interest}%`,
+    yourStrength: `${performance_strength}%`,
+    avgInterest: `${avgTechnicalInterest}%`,
+    avgStrength: `${avgTechnicalStrength}%`,
   },
 ]
+
+// ==========================================
+// LAYOUT
+// ==========================================
+
+const cardHeightPage8 = 50
+let currentYPage8 = 88
 
 // ==========================================
 // RENDER
 // ==========================================
 
-let currentYPage8 = 88
-const boxHeight = 48
-
 technicalCategoriesPage8.forEach((item) => {
 
-  // LEFT BOX (CONTENT)
+  // shadow
+  doc.setFillColor(235, 235, 235)
+  doc.roundedRect(21, currentYPage8 + 1, 170, cardHeightPage8, 4, 4, 'F')
+
+  // card
+  doc.setFillColor(255, 255, 255)
+  doc.roundedRect(20, currentYPage8, 170, cardHeightPage8, 4, 4, 'F')
+
+  // left panel
   doc.setFillColor(248, 250, 252)
-  doc.roundedRect(20, currentYPage8, 110, boxHeight, 3, 3, 'F')
+  doc.roundedRect(20, currentYPage8, 118, cardHeightPage8, 4, 4, 'F')
 
-  // TITLE
-  doc.setFontSize(11)
-  doc.setTextColor(...dark)
+  // title
+  doc.setFontSize(12)
+  doc.setTextColor(...primary)
   doc.setFont('helvetica', 'bold')
-  doc.text(`${item.title}`, 25, currentYPage8 + 8)
 
-  // DESCRIPTION
-  doc.setFontSize(7.5)
+  doc.text(item.title, 26, currentYPage8 + 10)
+
+  // description
+  doc.setFontSize(7.2)
   doc.setTextColor(90)
   doc.setFont('helvetica', 'normal')
 
-  const desc = doc.splitTextToSize(item.description, 100)
-  doc.text(desc, 25, currentYPage8 + 16)
+  const desc = doc.splitTextToSize(item.description, 102)
+  doc.text(desc, 26, currentYPage8 + 18)
 
-  // RIGHT BOX (SCORES)
+  // right box
   doc.setFillColor(255, 255, 255)
   doc.setDrawColor(...primary)
-  doc.setLineWidth(0.5)
+  doc.setLineWidth(0.7)
 
-  doc.roundedRect(135, currentYPage8, 55, boxHeight, 3, 3, 'FD')
+  doc.roundedRect(
+    142,
+    currentYPage8 + 3,
+    47,
+    cardHeightPage8 - 6,
+    3,
+    3,
+    'FD'
+  )
 
-  // HEADER SCORES
-  doc.setFontSize(9)
+  // your scores
+  doc.setFontSize(8.5)
   doc.setTextColor(...dark)
   doc.setFont('helvetica', 'bold')
-  doc.text('Your Scores', 140, currentYPage8 + 8)
 
-  doc.setFontSize(7.5)
+  doc.text('Your Scores', 146, currentYPage8 + 11)
+
+  doc.setFontSize(7.2)
   doc.setFont('helvetica', 'normal')
 
-  doc.text(`Interest: ${item.yourInterest}`, 140, currentYPage8 + 16)
-  doc.text(`Strength: ${item.yourStrength}`, 140, currentYPage8 + 23)
+  doc.text(`Interest: ${item.yourInterest}`, 146, currentYPage8 + 19)
+  doc.text(`Strength: ${item.yourStrength}`, 146, currentYPage8 + 26)
 
-  // AVERAGE
-  doc.setFontSize(9)
+  // divider
+  doc.setDrawColor(220)
+  doc.line(145, currentYPage8 + 31, 184, currentYPage8 + 31)
+
+  // average
+  doc.setFontSize(8.5)
   doc.setFont('helvetica', 'bold')
-  doc.text('Average Scores', 140, currentYPage8 + 32)
 
-  doc.setFontSize(7.5)
+  doc.text('Average', 146, currentYPage8 + 38)
+
+  doc.setFontSize(7.2)
   doc.setFont('helvetica', 'normal')
 
-  doc.text(`Interest: ${item.avgInterest}`, 140, currentYPage8 + 38)
-  doc.text(`Strength: ${item.avgStrength}`, 140, currentYPage8 + 44)
+  doc.text(`Interest: ${item.avgInterest}`, 146, currentYPage8 + 45)
+  doc.text(`Strength: ${item.avgStrength}`, 146, currentYPage8 + 51)
 
-  // SAFE SPACING (consistente)
-  currentYPage8 += boxHeight + 8
+  currentYPage8 += cardHeightPage8 + 10
 })
 
 // ==========================================
@@ -1725,30 +1831,26 @@ technicalCategoriesPage8.forEach((item) => {
 // ==========================================
 
 drawFooter(8)
-
 // ==========================================
 // PAGE 9 - INFLUENCE COMPETENCY SCORES
 // ==========================================
 // ==========================================
 // PAGE 9
 // ==========================================
+// ==========================================
+// PAGE 9 - INFLUENCE COMPETENCY SCORES
+// ==========================================
 
 doc.addPage()
-
 drawHeader()
 
 // ==========================================
 // TITLE
 // ==========================================
 
-doc.setFontSize(20)
-
+doc.setFontSize(22)
 doc.setTextColor(...dark)
-
-doc.setFont(
-  'helvetica',
-  'bold'
-)
+doc.setFont('helvetica', 'bold')
 
 doc.text(
   'Influence Competency Scores',
@@ -1757,17 +1859,32 @@ doc.text(
 )
 
 // ==========================================
+// SAFE HELPERS
+// ==========================================
+
+const avgPage9 = (arr) => {
+  if (!arr || arr.length === 0) return 0
+
+  const valid = arr.map(Number)
+
+  return (
+    valid.reduce((a, b) => a + b, 0) /
+    valid.length
+  )
+}
+
+// ==========================================
 // CALCULATED VALUES
 // ==========================================
 
 // CONSULTING
 const consulting_interest =
-  avg([
+  avgPage9([
     getScore(11)
   ]).toFixed(2)
 
 const consulting_strength =
-  avg([
+  avgPage9([
     getScore(32),
     getScore(33),
     getScore(34)
@@ -1775,12 +1892,12 @@ const consulting_strength =
 
 // LEARNING
 const learning_interest =
-  avg([
+  avgPage9([
     getScore(12)
   ]).toFixed(2)
 
 const learning_strength =
-  avg([
+  avgPage9([
     getScore(35),
     getScore(36),
     getScore(37)
@@ -1788,34 +1905,37 @@ const learning_strength =
 
 // CHANGE
 const change_interest =
-  avg([
+  avgPage9([
     getScore(13)
   ]).toFixed(2)
 
 const change_strength =
-  avg([
+  avgPage9([
     getScore(38),
     getScore(39),
     getScore(40)
   ]).toFixed(2)
 
+// ==========================================
 // AVERAGES
+// ==========================================
+
 const avgInfluenceInterest =
-  avg([
+  avgPage9([
     consulting_interest,
     learning_interest,
     change_interest
   ]).toFixed(2)
 
 const avgInfluenceStrength =
-  avg([
+  avgPage9([
     consulting_strength,
     learning_strength,
     change_strength
   ]).toFixed(2)
 
 // ==========================================
-// INFLUENCE DATA
+// DATA
 // ==========================================
 
 const influenceCategoriesPage9 = [
@@ -1826,11 +1946,9 @@ const influenceCategoriesPage9 = [
       'Engaging clients through structured, strategic, and ethical processes, leveraging organizational knowledge and personal competencies like self-awareness and critical reflection.',
 
     yourInterest: `${consulting_interest}%`,
-
     yourStrength: `${consulting_strength}%`,
 
     avgInterest: `${avgInfluenceInterest}%`,
-
     avgStrength: `${avgInfluenceStrength}%`,
   },
 
@@ -1841,11 +1959,9 @@ const influenceCategoriesPage9 = [
       'Facilitating dialogue, ideation, coaching, and transforming organizations into learning systems that generate and promote innovation.',
 
     yourInterest: `${learning_interest}%`,
-
     yourStrength: `${learning_strength}%`,
 
     avgInterest: `${avgInfluenceInterest}%`,
-
     avgStrength: `${avgInfluenceStrength}%`,
   },
 
@@ -1856,191 +1972,195 @@ const influenceCategoriesPage9 = [
       'Leveraging change management knowledge and insights to design goal-oriented interventions, facilitate stakeholder consensus, and manage organizational changes efficiently to ensure smooth transitions and goal attainment.',
 
     yourInterest: `${change_interest}%`,
-
     yourStrength: `${change_strength}%`,
 
     avgInterest: `${avgInfluenceInterest}%`,
-
     avgStrength: `${avgInfluenceStrength}%`,
   },
 ]
 
 // ==========================================
+// STYLES
+// ==========================================
+
+const influenceCardHeight = 50
+let currentYPage9 = 88
+
+// ==========================================
 // RENDER
 // ==========================================
 
-let currentYPage9 = 88
+influenceCategoriesPage9.forEach((item) => {
 
-influenceCategoriesPage9.forEach(
-  item => {
+  // SHADOW
+  doc.setFillColor(235, 235, 235)
 
-    // LEFT BOX
-    doc.setFillColor(
-      248,
-      250,
-      252
+  doc.roundedRect(
+    21,
+    currentYPage9 + 1,
+    170,
+    influenceCardHeight,
+    4,
+    4,
+    'F'
+  )
+
+  // MAIN CARD
+  doc.setFillColor(255, 255, 255)
+
+  doc.roundedRect(
+    20,
+    currentYPage9,
+    170,
+    influenceCardHeight,
+    4,
+    4,
+    'F'
+  )
+
+  // ==========================================
+  // LEFT CONTENT
+  // ==========================================
+
+  doc.setFillColor(248, 250, 252)
+
+  doc.roundedRect(
+    20,
+    currentYPage9,
+    118,
+    influenceCardHeight,
+    4,
+    4,
+    'F'
+  )
+
+  // TITLE
+  doc.setFontSize(12)
+  doc.setTextColor(...primary)
+  doc.setFont('helvetica', 'bold')
+
+  doc.text(
+    item.title,
+    26,
+    currentYPage9 + 10
+  )
+
+  // DESCRIPTION
+  doc.setFontSize(7.2)
+  doc.setTextColor(90)
+  doc.setFont('helvetica', 'normal')
+
+  const descSplitPage9 =
+    doc.splitTextToSize(
+      item.description,
+      102
     )
 
-    doc.roundedRect(
-      20,
-      currentYPage9,
-      108,
-      42,
-      3,
-      3,
-      'F'
-    )
+  doc.text(
+    descSplitPage9,
+    26,
+    currentYPage9 + 18
+  )
 
-    // TITLE
-    doc.setFontSize(11)
+  // ==========================================
+  // RIGHT SCORE BOX
+  // ==========================================
 
-    doc.setTextColor(...dark)
+  doc.setFillColor(255, 255, 255)
+  doc.setDrawColor(...primary)
+  doc.setLineWidth(0.7)
 
-    doc.setFont(
-      'helvetica',
-      'bold'
-    )
+  doc.roundedRect(
+    142,
+    currentYPage9 + 3,
+    47,
+    influenceCardHeight - 6,
+    3,
+    3,
+    'FD'
+  )
 
-    doc.text(
-      `${item.title}:`,
-      25,
-      currentYPage9 + 8
-    )
+  // YOUR SCORES
+  doc.setFontSize(8.5)
+  doc.setTextColor(...dark)
+  doc.setFont('helvetica', 'bold')
 
-    // DESCRIPTION
-    doc.setFontSize(7.5)
+  doc.text(
+    'Your Scores',
+    146,
+    currentYPage9 + 11
+  )
 
-    doc.setTextColor(90)
+  doc.setFontSize(7.5)
+  doc.setFont('helvetica', 'normal')
 
-    doc.setFont(
-      'helvetica',
-      'normal'
-    )
+  doc.text(
+    `Interest: ${item.yourInterest}`,
+    146,
+    currentYPage9 + 19
+  )
 
-    const descSplitPage9 =
-      doc.splitTextToSize(
-        item.description,
-        95
-      )
+  doc.text(
+    `Strength: ${item.yourStrength}`,
+    146,
+    currentYPage9 + 26
+  )
 
-    doc.text(
-      descSplitPage9,
-      25,
-      currentYPage9 + 15
-    )
+  // DIVIDER
+  doc.setDrawColor(220)
 
-    // RIGHT BOX
-    doc.setFillColor(
-      255,
-      255,
-      255
-    )
+  doc.line(
+    145,
+    currentYPage9 + 31,
+    184,
+    currentYPage9 + 31
+  )
 
-    doc.roundedRect(
-      135,
-      currentYPage9,
-      55,
-      42,
-      3,
-      3,
-      'F'
-    )
+  // AVERAGE
+  doc.setFontSize(8.5)
+  doc.setFont('helvetica', 'bold')
 
-    // BORDER
-    doc.setDrawColor(...primary)
+  doc.text(
+    'Average',
+    146,
+    currentYPage9 + 38
+  )
 
-    doc.setLineWidth(0.5)
+  doc.setFontSize(7.5)
+  doc.setFont('helvetica', 'normal')
 
-    doc.roundedRect(
-      135,
-      currentYPage9,
-      55,
-      42,
-      3,
-      3
-    )
+  doc.text(
+    `Interest: ${item.avgInterest}`,
+    146,
+    currentYPage9 + 45
+  )
 
-    // YOUR SCORES
-    doc.setFontSize(9)
+  doc.text(
+    `Strength: ${item.avgStrength}`,
+    146,
+    currentYPage9 + 51
+  )
 
-    doc.setTextColor(...dark)
-
-    doc.setFont(
-      'helvetica',
-      'bold'
-    )
-
-    doc.text(
-      'Your Scores',
-      140,
-      currentYPage9 + 8
-    )
-
-    doc.setFontSize(7.5)
-
-    doc.setFont(
-      'helvetica',
-      'normal'
-    )
-
-    doc.text(
-      `Interest: ${item.yourInterest}`,
-      140,
-      currentYPage9 + 16
-    )
-
-    doc.text(
-      `Strength: ${item.yourStrength}`,
-      140,
-      currentYPage9 + 23
-    )
-
-    // AVERAGE
-    doc.setFontSize(9)
-
-    doc.setFont(
-      'helvetica',
-      'bold'
-    )
-
-    doc.text(
-      'Average Scores',
-      140,
-      currentYPage9 + 31
-    )
-
-    doc.setFontSize(7.5)
-
-    doc.setFont(
-      'helvetica',
-      'normal'
-    )
-
-    doc.text(
-      `Interest: ${item.avgInterest}`,
-      140,
-      currentYPage9 + 37
-    )
-
-    doc.text(
-      `Strength: ${item.avgStrength}`,
-      140,
-      currentYPage9 + 43
-    )
-
-    currentYPage9 += 55
-  }
-)
+  // NEXT CARD
+  currentYPage9 += influenceCardHeight + 10
+})
 
 // ==========================================
 // FOOTER
 // ==========================================
 
 drawFooter(9)
-
 // ==========================================
 // PAGE 10 - CLUSTERS (DYNAMIC VERSION)
 // ==========================================
+// ==========================================
+// PAGE 10 - CLUSTERS
+// ==========================================
+
+// ==========================================
+// PAGE 10 - CLUSTERS
+// ==========================================
+
 doc.addPage()
 drawHeader()
 
@@ -2048,11 +2168,11 @@ drawHeader()
 // TITLE
 // ==========================================
 
-doc.setFontSize(20)
+doc.setFontSize(22)
 doc.setTextColor(...dark)
 doc.setFont('helvetica', 'bold')
-doc.text('Clusters', 20, 72)
 
+doc.text('Clusters', 20, 72)
 
 // ==========================================
 // INTRO
@@ -2065,44 +2185,96 @@ doc.setFont('helvetica', 'normal')
 const clustersIntroPage10 =
   'The outside ring in this illustration contains 27 different OD competencies that a practitioner may choose to develop and align with a career that has the type of impact, identity, and approach they prefer. This section provides descriptions of each competency along with your scores and average scores from participants.'
 
-const introSplitPage10 = doc.splitTextToSize(clustersIntroPage10, 170)
+const introSplitPage10 =
+  doc.splitTextToSize(clustersIntroPage10, 170)
+
 doc.text(introSplitPage10, 20, 82)
 
+// ==========================================
+// SAFE HELPERS (FIX REAL PROBLEM)
+// ==========================================
+
+const avgPage10 = (arr) => {
+  if (!arr || arr.length === 0) return 0
+
+  const clean = arr
+    .map(v => Number(v))
+    .filter(v => !isNaN(v))
+
+  if (clean.length === 0) return 0
+
+  return clean.reduce((a, b) => a + b, 0) / clean.length
+}
+
+const scorePage10 = (index) => {
+  const val = Number(getScore(index))
+  return isNaN(val) ? 0 : val.toFixed(2)
+}
+
+const safeGet = (index) => {
+  const val = Number(getScore(index))
+  return isNaN(val) ? 0 : val
+}
 
 // ==========================================
-// HELPERS (SIN CALC LOCAL → SIN ERRORES)
+// GLOBAL CALCULATIONS (FIXED)
 // ==========================================
 
-// 🔥 usa helper global seguro (evita conflicto React)
-const formatScore = (index) =>
-  `${pdfCalc([index])}%`
+// SOCIAL INTEREST
+const socialInterestPage10 =
+  avgPage10([
+    safeGet(14),
+    safeGet(15),
+    safeGet(16),
+    safeGet(17),
+    safeGet(18),
+    safeGet(19),
+    safeGet(20),
+    safeGet(21),
+    safeGet(22),
+  ]).toFixed(2)
 
+// SOCIAL STRENGTH
+const socialStrengthPage10 =
+  avgPage10([
+    safeGet(41),
+    safeGet(42),
+    safeGet(43),
+    safeGet(44),
+    safeGet(45),
+    safeGet(46),
+    safeGet(47),
+    safeGet(48),
+    safeGet(49),
+  ]).toFixed(2)
 
-// estructura segura
-const buildRows = (list) =>
-  list.map(item => [
+// ==========================================
+// ROW BUILDER
+// ==========================================
+
+const buildClusterRowsPage10 = (list) => {
+  return list.map(item => [
     item.name,
     item.desc,
-    `${getScore(item.scoreIndex).toFixed(2)}%`,
-    `${social_strength}%`,
+    `${scorePage10(item.scoreIndex)}%`,
+    `${socialStrengthPage10}%`,
   ])
-
+}
 
 // ==========================================
-// TABLE HELPER
+// TABLE
 // ==========================================
 
-function drawClusterTable(title, rows, yStart) {
+function drawClusterTablePage10(title, rows, yStart) {
+
   doc.setFontSize(11)
-  doc.setTextColor(...dark)
+  doc.setTextColor(...primary)
   doc.setFont('helvetica', 'bold')
   doc.text(title, 20, yStart)
 
   autoTable(doc, {
-    startY: yStart + 4,
-
+    startY: yStart + 5,
     head: [['Cluster', 'Description', 'Your Score', 'Average']],
-
     body: rows,
 
     margin: { left: 20, right: 20 },
@@ -2111,12 +2283,16 @@ function drawClusterTable(title, rows, yStart) {
       fontSize: 7,
       cellPadding: 3,
       valign: 'middle',
+      textColor: [70, 70, 70],
+      lineColor: [230, 230, 230],
+      lineWidth: 0.2,
     },
 
     headStyles: {
       fillColor: primary,
       textColor: [255, 255, 255],
       fontStyle: 'bold',
+      halign: 'center',
     },
 
     alternateRowStyles: {
@@ -2124,101 +2300,98 @@ function drawClusterTable(title, rows, yStart) {
     },
 
     columnStyles: {
-      0: { cellWidth: 28, fontStyle: 'bold' },
-      1: { cellWidth: 90 },
-      2: { cellWidth: 25, halign: 'center' },
-      3: { cellWidth: 25, halign: 'center' },
+      0: { cellWidth: 30, fontStyle: 'bold' },
+      1: { cellWidth: 88 },
+      2: { cellWidth: 26, halign: 'center' },
+      3: { cellWidth: 26, halign: 'center' },
     },
   })
 }
 
-
 // ==========================================
-// DATA (100% DINÁMICO)
+// DATA
 // ==========================================
 
-const humanityRowsPage10 = buildRows([
+const humanityRowsPage10 = buildClusterRowsPage10([
   {
     name: 'DE&I',
-    desc: 'Inspiring, developing, and sustaining genuine and measurable characteristics of diversity, equity, and inclusion.',
+    desc: 'Inspiring, developing, and sustaining measurable diversity, equity, and inclusion.',
     scoreIndex: 14,
   },
   {
     name: 'Ethics & Citizenship',
-    desc: 'Cultivating a mindful and ethical workplace marked by ethical decision making and citizenship.',
+    desc: 'Cultivating ethical decision making and citizenship.',
     scoreIndex: 15,
   },
   {
     name: 'Meaning & Well-being',
-    desc: 'Cultivating meaningful work by aligning individual and team purpose with the organization mission.',
+    desc: 'Aligning purpose with organizational mission.',
     scoreIndex: 16,
   },
 ])
 
-const psychologyRowsPage10 = buildRows([
+const psychologyRowsPage10 = buildClusterRowsPage10([
   {
     name: 'Org Behavior',
-    desc: 'Drawing from social psychology to motivate employees and address resistance to change.',
+    desc: 'Motivating employees and addressing resistance to change.',
     scoreIndex: 17,
   },
   {
     name: 'Team Development',
-    desc: 'Developing cohesive and adaptive teams with clear roles and collaboration.',
+    desc: 'Developing cohesive and adaptive teams.',
     scoreIndex: 18,
   },
   {
     name: 'Group Dynamics',
-    desc: 'Addressing dysfunctional group behaviors including sabotage and anti-task behaviors.',
+    desc: 'Managing dysfunctional group behavior.',
     scoreIndex: 19,
   },
 ])
 
-const cultureRowsPage10 = buildRows([
+const cultureRowsPage10 = buildClusterRowsPage10([
   {
     name: 'Mission Alignment',
-    desc: 'Align culture with organizational vision, mission, and values.',
+    desc: 'Align culture with vision and values.',
     scoreIndex: 20,
   },
   {
     name: 'Surfacing Assumptions',
-    desc: 'Addressing anxieties and assumptions that limit effectiveness.',
+    desc: 'Address limiting assumptions.',
     scoreIndex: 21,
   },
   {
     name: 'Psychological Safety',
-    desc: 'Creating safe spaces to discuss and challenge assumptions.',
+    desc: 'Create safe discussion environments.',
     scoreIndex: 22,
   },
 ])
 
-
 // ==========================================
-// RENDER FLOW
+// RENDER
 // ==========================================
 
-let yPage10 = 105
+let currentYPage10 = 108
 
-drawClusterTable('Social - Humanity', humanityRowsPage10, yPage10)
-yPage10 = doc.lastAutoTable.finalY + 10
+drawClusterTablePage10('Social - Humanity', humanityRowsPage10, currentYPage10)
+currentYPage10 = doc.lastAutoTable.finalY + 10
 
-drawClusterTable('Social - Psychology', psychologyRowsPage10, yPage10)
-yPage10 = doc.lastAutoTable.finalY + 10
+drawClusterTablePage10('Social - Psychology', psychologyRowsPage10, currentYPage10)
+currentYPage10 = doc.lastAutoTable.finalY + 10
 
-drawClusterTable('Social - Culture', cultureRowsPage10, yPage10)
-
+drawClusterTablePage10('Social - Culture', cultureRowsPage10, currentYPage10)
 
 // ==========================================
 // FOOTER
 // ==========================================
 
 drawFooter(10)
-
 // ==========================================
 // PAGE 11
 // ==========================================
 // ==========================================
-// PAGE 11 - TECHNICAL (AUTO VERSION)
+// PAGE 11 - TECHNICAL
 // ==========================================
+
 doc.addPage()
 drawHeader()
 
@@ -2229,126 +2402,389 @@ drawHeader()
 doc.setFontSize(22)
 doc.setTextColor(...dark)
 doc.setFont('helvetica', 'bold')
+
 doc.text('Technical', 20, 75)
 
-
-
 // ==========================================
-// DATA STRUCTURE (CLEAN + SAFE)
+// SAFE HELPERS
 // ==========================================
 
-const technicalSections = [
+const avgTechnicalPage11 = (
+  arr
+) => {
+
+  if (!arr || arr.length === 0)
+    return 0
+
+  return (
+    arr.reduce(
+      (sum, value) =>
+        sum + Number(value || 0),
+      0
+    ) / arr.length
+  )
+}
+
+const pdfCalcPage11 = (
+  indexes
+) => {
+
+  return avgTechnicalPage11(
+    indexes.map(index =>
+      Number(
+        getScore(index) || 0
+      )
+    )
+  ).toFixed(2)
+}
+
+// ==========================================
+// CALCULATED SCORES
+// ==========================================
+
+// DESIGN
+const organizationalAgility =
+  pdfCalcPage11([
+    32,
+    33,
+    34,
+  ])
+
+const systemsStructures =
+  pdfCalcPage11([
+    32,
+    33,
+    34,
+  ])
+
+const efficiencyEffectiveness =
+  pdfCalcPage11([
+    32,
+    33,
+    34,
+  ])
+
+// PERFORMANCE
+const dataAnalysisPresentation =
+  pdfCalcPage11([
+    35,
+    36,
+    37,
+  ])
+
+const balancedScorecard =
+  pdfCalcPage11([
+    38,
+    39,
+    40,
+  ])
+
+// ==========================================
+// DATA STRUCTURE
+// ==========================================
+
+const technicalSectionsPage11 = [
+
+  // DESIGN
   {
     section: 'Design',
+
     items: [
       {
-        title: 'Organizational Agility',
+        title:
+          'Organizational Agility',
+
         description:
           'Design agile organizational systems that respond to changes in the environment.',
-        your: pdfCalc([32,33,34]),
-        average: 44.69,
+
+        your:
+          organizationalAgility,
+
+        average: '44.69',
       },
+
       {
-        title: 'Systems & Structures',
+        title:
+          'Systems & Structures',
+
         description:
           'Organization design principles including span of control and learning networks.',
-        your: pdfCalc([32,33,34]),
-        average: 40.8,
+
+        your:
+          systemsStructures,
+
+        average: '40.80',
       },
+
       {
-        title: 'Efficiency & Effectiveness',
+        title:
+          'Efficiency & Effectiveness',
+
         description:
           'Improving processes through assessment of inputs, outputs and stakeholders.',
-        your: pdfCalc([32,33,34]),
-        average: 52.96,
+
+        your:
+          efficiencyEffectiveness,
+
+        average: '52.96',
       },
     ],
   },
+
+  // PERFORMANCE
   {
     section: 'Performance',
+
     items: [
       {
-        title: 'Data Analysis & Presentation',
+        title:
+          'Data Analysis & Presentation',
+
         description:
           'Using organizational data to generate actionable insights.',
-        your: pdfCalc([32,33,34]),
-        average: 62.86,
+
+        your:
+          dataAnalysisPresentation,
+
+        average: '62.86',
       },
+
       {
-        title: 'Balanced Scorecard',
+        title:
+          'Balanced Scorecard',
+
         description:
           'Developing performance indicators aligned with culture.',
-        your: pdfCalc([32,33,34]),
-        average: 44.38,
+
+        your:
+          balancedScorecard,
+
+        average: '44.38',
       },
     ],
   },
 ]
 
-
 // ==========================================
 // BLOCK RENDERER
 // ==========================================
 
-function drawTechnicalBlockAuto(item, y) {
-  doc.setFillColor(248, 250, 252)
-  doc.roundedRect(20, y - 5, 170, 26, 3, 3, 'F')
+function drawTechnicalBlockPage11(
+  item,
+  y
+) {
+
+  // SHADOW
+  doc.setFillColor(
+    235,
+    235,
+    235
+  )
+
+  doc.roundedRect(
+    21,
+    y - 4,
+    170,
+    28,
+    4,
+    4,
+    'F'
+  )
+
+  // MAIN CARD
+  doc.setFillColor(
+    255,
+    255,
+    255
+  )
+
+  doc.roundedRect(
+    20,
+    y - 5,
+    170,
+    28,
+    4,
+    4,
+    'F'
+  )
+
+  // LEFT AREA
+  doc.setFillColor(
+    248,
+    250,
+    252
+  )
+
+  doc.roundedRect(
+    20,
+    y - 5,
+    118,
+    28,
+    4,
+    4,
+    'F'
+  )
 
   // TITLE
   doc.setFontSize(10)
-  doc.setTextColor(...dark)
-  doc.setFont('helvetica', 'bold')
-  doc.text(item.title, 24, y + 1)
+
+  doc.setTextColor(...primary)
+
+  doc.setFont(
+    'helvetica',
+    'bold'
+  )
+
+  doc.text(
+    item.title,
+    25,
+    y + 2
+  )
 
   // DESCRIPTION
-  doc.setFontSize(7.5)
-  doc.setTextColor(90)
-  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(7.3)
 
-  const desc = doc.splitTextToSize(item.description, 92)
-  doc.text(desc, 24, y + 6)
+  doc.setTextColor(90)
+
+  doc.setFont(
+    'helvetica',
+    'normal'
+  )
+
+  const desc =
+    doc.splitTextToSize(
+      item.description,
+      100
+    )
+
+  doc.text(
+    desc,
+    25,
+    y + 8
+  )
+
+  // RIGHT SCORE BOX
+  doc.setFillColor(
+    255,
+    255,
+    255
+  )
+
+  doc.setDrawColor(...primary)
+
+  doc.setLineWidth(0.7)
+
+  doc.roundedRect(
+    142,
+    y - 2,
+    47,
+    22,
+    3,
+    3,
+    'FD'
+  )
 
   // YOUR SCORE
-  doc.setFontSize(9)
-  doc.setTextColor(...dark)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Your Score', 145, y + 2)
+  doc.setFontSize(8)
 
-  doc.setFontSize(14)
-  doc.text(`${item.your}%`, 152, y + 11, { align: 'center' })
+  doc.setTextColor(...dark)
+
+  doc.setFont(
+    'helvetica',
+    'bold'
+  )
+
+  doc.text(
+    'Your Score',
+    146,
+    y + 3
+  )
+
+  doc.setFontSize(13)
+
+  doc.text(
+    `${item.your}%`,
+    165,
+    y + 10,
+    {
+      align: 'center',
+    }
+  )
+
+  // DIVIDER
+  doc.setDrawColor(220)
+
+  doc.line(
+    145,
+    y + 12,
+    184,
+    y + 12
+  )
 
   // AVERAGE
-  doc.setFontSize(9)
-  doc.text('Average', 145, y + 18)
+  doc.setFontSize(8)
 
-  doc.setFontSize(14)
-  doc.text(`${item.average}%`, 152, y + 27, { align: 'center' })
+  doc.text(
+    'Average',
+    146,
+    y + 18
+  )
+
+  doc.setFontSize(13)
+
+  doc.text(
+    `${item.average}%`,
+    165,
+    y + 25,
+    {
+      align: 'center',
+    }
+  )
 }
 
-
 // ==========================================
-// AUTO LAYOUT ENGINE
+// AUTO LAYOUT
 // ==========================================
 
-let yPage11 = 90
+let yPage11 = 92
 
-technicalSections.forEach((section) => {
+technicalSectionsPage11.forEach(
+  (section) => {
 
-  doc.setFontSize(15)
-  doc.setTextColor(...dark)
-  doc.setFont('helvetica', 'bold')
-  doc.text(section.section, 20, yPage11)
+    // SECTION TITLE
+    doc.setFontSize(15)
 
-  yPage11 += 10
+    doc.setTextColor(...dark)
 
-  section.items.forEach((item) => {
-    drawTechnicalBlockAuto(item, yPage11)
-    yPage11 += 32
-  })
+    doc.setFont(
+      'helvetica',
+      'bold'
+    )
 
-  yPage11 += 12
-})
+    doc.text(
+      section.section,
+      20,
+      yPage11
+    )
 
+    yPage11 += 10
+
+    // ITEMS
+    section.items.forEach(
+      (item) => {
+
+        drawTechnicalBlockPage11(
+          item,
+          yPage11
+        )
+
+        yPage11 += 36
+      }
+    )
+
+    yPage11 += 10
+  }
+)
 
 // ==========================================
 // FOOTER
@@ -2356,12 +2792,15 @@ technicalSections.forEach((section) => {
 
 drawFooter(11)
 
+// ==========================================
+// PAGE 12
+// ==========================================
+// ==========================================
+// PAGE 12
+// ==========================================
 
 // ==========================================
-// PAGE 12
-// ==========================================
-// ==========================================
-// PAGE 12
+// PAGE 12 - INFLUENCE
 // ==========================================
 
 doc.addPage()
@@ -2374,132 +2813,385 @@ drawHeader()
 doc.setFontSize(22)
 doc.setTextColor(...dark)
 doc.setFont('helvetica', 'bold')
-doc.text('Influence', 20, 75)
 
+doc.text(
+  'Influence',
+  20,
+  75
+)
 
 // ==========================================
-// HELPERS (SIN REDECLARAR calc)
+// SAFE HELPERS
 // ==========================================
 
+const avgPage12 = (arr) => {
+
+  if (!arr || arr.length === 0)
+    return 0
+
+  return (
+    arr.reduce(
+      (sum, value) =>
+        sum + Number(value || 0),
+      0
+    ) / arr.length
+  )
+}
+
+const pdfCalcPage12 = (
+  indexes
+) => {
+
+  return avgPage12(
+    indexes.map(index =>
+      Number(
+        getScore(index) || 0
+      )
+    )
+  ).toFixed(2)
+}
+
+const buildItemsPage12 = (
+  items
+) => {
+
+  return items.map(item => ({
+    ...item,
+
+    your:
+      pdfCalcPage12(
+        item.indices
+      ),
+  }))
+}
 
 // ==========================================
-// DATA (DINÁMICO)
+// DATA (DYNAMIC)
 // ==========================================
 
 const influenceSectionsPage12 = [
+
+  // LEARNING
   {
     section: 'Learning',
-    items: buildItems([
-      {
-        title: 'Inquiry & Innovation',
-        description:
-          'Facilitating inquiry, dialogue, creative thinking and experimentation.',
-        indices: [32, 33, 34],
-        average: 64.53,
-      },
-      {
-        title: 'Learning Organization',
-        description:
-          'Encouraging organizational learning systems and innovation.',
-        indices: [35, 36, 37],
-        average: 59.48,
-      },
-      {
-        title: 'Leadership Development & Coaching',
-        description:
-          'Helping leaders manage challenges through dialogue and coaching.',
-        indices: [38, 39, 40],
-        average: 58.01,
-      },
-    ]),
+
+    items:
+      buildItemsPage12([
+        {
+          title:
+            'Inquiry & Innovation',
+
+          description:
+            'Facilitating inquiry, dialogue, creative thinking and experimentation.',
+
+          indices: [
+            32,
+            33,
+            34,
+          ],
+
+          average: '64.53',
+        },
+
+        {
+          title:
+            'Learning Organization',
+
+          description:
+            'Encouraging organizational learning systems and innovation.',
+
+          indices: [
+            35,
+            36,
+            37,
+          ],
+
+          average: '59.48',
+        },
+
+        {
+          title:
+            'Leadership Development & Coaching',
+
+          description:
+            'Helping leaders manage challenges through dialogue and coaching.',
+
+          indices: [
+            38,
+            39,
+            40,
+          ],
+
+          average: '58.01',
+        },
+      ]),
   },
+
+  // CONSULTING
   {
     section: 'Consulting',
-    items: buildItems([
-      {
-        title: 'Use of Self',
-        description:
-          'Awareness of self, system, integrity, trust and inclusion.',
-        indices: [11, 12],
-        average: 61.33,
-      },
-      {
-        title: 'Client Management',
-        description:
-          'Identifying sponsors, diagnosing needs and executing interventions.',
-        indices: [13, 14],
-        average: 58.3,
-      },
-    ]),
+
+    items:
+      buildItemsPage12([
+        {
+          title:
+            'Use of Self',
+
+          description:
+            'Awareness of self, system, integrity, trust and inclusion.',
+
+          indices: [
+            11,
+            12,
+          ],
+
+          average: '61.33',
+        },
+
+        {
+          title:
+            'Client Management',
+
+          description:
+            'Identifying sponsors, diagnosing needs and executing interventions.',
+
+          indices: [
+            13,
+            14,
+          ],
+
+          average: '58.30',
+        },
+      ]),
   },
 ]
-
 
 // ==========================================
 // BLOCK RENDERER
 // ==========================================
 
-function drawInfluenceBlockAuto(item, y) {
-  doc.setFillColor(248, 250, 252)
-  doc.roundedRect(20, y - 5, 170, 26, 3, 3, 'F')
+function drawInfluenceBlockPage12(
+  item,
+  y
+) {
+
+  // SHADOW
+  doc.setFillColor(
+    235,
+    235,
+    235
+  )
+
+  doc.roundedRect(
+    21,
+    y - 4,
+    170,
+    28,
+    4,
+    4,
+    'F'
+  )
+
+  // MAIN CARD
+  doc.setFillColor(
+    255,
+    255,
+    255
+  )
+
+  doc.roundedRect(
+    20,
+    y - 5,
+    170,
+    28,
+    4,
+    4,
+    'F'
+  )
+
+  // LEFT SIDE
+  doc.setFillColor(
+    248,
+    250,
+    252
+  )
+
+  doc.roundedRect(
+    20,
+    y - 5,
+    118,
+    28,
+    4,
+    4,
+    'F'
+  )
 
   // TITLE
-  doc.setFontSize(10)
-  doc.setTextColor(...dark)
-  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9.5)
 
-  const titleSplit = doc.splitTextToSize(item.title, 35)
-  doc.text(titleSplit, 24, y + 1)
+  doc.setTextColor(...primary)
+
+  doc.setFont(
+    'helvetica',
+    'bold'
+  )
+
+  const titleSplit =
+    doc.splitTextToSize(
+      item.title,
+      32
+    )
+
+  doc.text(
+    titleSplit,
+    24,
+    y + 1
+  )
 
   // DESCRIPTION
   doc.setFontSize(7.2)
+
   doc.setTextColor(90)
-  doc.setFont('helvetica', 'normal')
 
-  const desc = doc.splitTextToSize(item.description, 90)
-  doc.text(desc, 58, y + 1)
+  doc.setFont(
+    'helvetica',
+    'normal'
+  )
 
-  // YOUR SCORE (DINÁMICO)
-  doc.setFontSize(9)
+  const desc =
+    doc.splitTextToSize(
+      item.description,
+      60
+    )
+
+  doc.text(
+    desc,
+    58,
+    y + 2
+  )
+
+  // RIGHT SCORE BOX
+  doc.setFillColor(
+    255,
+    255,
+    255
+  )
+
+  doc.setDrawColor(...primary)
+
+  doc.setLineWidth(0.7)
+
+  doc.roundedRect(
+    142,
+    y - 2,
+    47,
+    22,
+    3,
+    3,
+    'FD'
+  )
+
+  // YOUR SCORE
+  doc.setFontSize(8)
+
   doc.setTextColor(...dark)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Your Score', 145, y + 2)
 
-  doc.setFontSize(14)
-  doc.text(`${item.your}%`, 152, y + 11, { align: 'center' })
+  doc.setFont(
+    'helvetica',
+    'bold'
+  )
+
+  doc.text(
+    'Your Score',
+    146,
+    y + 3
+  )
+
+  doc.setFontSize(13)
+
+  doc.text(
+    `${item.your}%`,
+    165,
+    y + 10,
+    {
+      align: 'center',
+    }
+  )
+
+  // DIVIDER
+  doc.setDrawColor(220)
+
+  doc.line(
+    145,
+    y + 12,
+    184,
+    y + 12
+  )
 
   // AVERAGE
-  doc.setFontSize(9)
-  doc.text('Average', 145, y + 18)
+  doc.setFontSize(8)
 
-  doc.setFontSize(14)
-  doc.text(`${item.average}%`, 152, y + 27, { align: 'center' })
+  doc.text(
+    'Average',
+    146,
+    y + 18
+  )
+
+  doc.setFontSize(13)
+
+  doc.text(
+    `${item.average}%`,
+    165,
+    y + 25,
+    {
+      align: 'center',
+    }
+  )
 }
 
-
 // ==========================================
-// AUTO LAYOUT ENGINE
+// AUTO LAYOUT
 // ==========================================
 
-let yPage12 = 90
+let yPage12 = 92
 
-influenceSectionsPage12.forEach((section) => {
+influenceSectionsPage12.forEach(
+  (section) => {
 
-  doc.setFontSize(15)
-  doc.setTextColor(...dark)
-  doc.setFont('helvetica', 'bold')
-  doc.text(section.section, 20, yPage12)
+    // SECTION TITLE
+    doc.setFontSize(15)
 
-  yPage12 += 10
+    doc.setTextColor(...dark)
 
-  section.items.forEach((item) => {
-    drawInfluenceBlockAuto(item, yPage12)
-    yPage12 += 32
-  })
+    doc.setFont(
+      'helvetica',
+      'bold'
+    )
 
-  yPage12 += 12
-})
+    doc.text(
+      section.section,
+      20,
+      yPage12
+    )
 
+    yPage12 += 10
+
+    // ITEMS
+    section.items.forEach(
+      (item) => {
+
+        drawInfluenceBlockPage12(
+          item,
+          yPage12
+        )
+
+        yPage12 += 36
+      }
+    )
+
+    yPage12 += 10
+  }
+)
 
 // ==========================================
 // FOOTER
@@ -2507,12 +3199,14 @@ influenceSectionsPage12.forEach((section) => {
 
 drawFooter(12)
 
-
 // ==========================================
 // PAGE 13
 // ==========================================
 // ==========================================
 // PAGE 13 - INFLUENCE (FULL DYNAMIC)
+// ==========================================
+// ==========================================
+// PAGE 13 - INFLUENCE
 // ==========================================
 
 doc.addPage()
@@ -2525,139 +3219,385 @@ drawHeader()
 doc.setFontSize(22)
 doc.setTextColor(...dark)
 doc.setFont('helvetica', 'bold')
-doc.text('Influence', 20, 75)
 
-
-// ==========================================
-// HELPERS (OPERACIONES AUTOMÁTICAS)
-// ==========================================
-
-// promedio dinámico desde scores
-const calc = (arr) =>
-  avg(arr.map(getScore)).toFixed(2)
-
-
-
+doc.text(
+  'Influence',
+  20,
+  75
+)
 
 // ==========================================
-// DATA (SOLO ÍNDICES → TODO SE CALCULA)
+// SAFE HELPERS
+// ==========================================
+
+const avgPage13 = (arr) => {
+
+  if (!arr || arr.length === 0)
+    return 0
+
+  return (
+    arr.reduce(
+      (sum, value) =>
+        sum + Number(value || 0),
+      0
+    ) / arr.length
+  )
+}
+
+const pdfCalcPage13 = (
+  indexes
+) => {
+
+  return avgPage13(
+    indexes.map(index =>
+      Number(
+        getScore(index) || 0
+      )
+    )
+  ).toFixed(2)
+}
+
+const buildItemsPage13 = (
+  items
+) => {
+
+  return items.map(item => ({
+    ...item,
+
+    your:
+      pdfCalcPage13(
+        item.indices
+      ),
+  }))
+}
+
+// ==========================================
+// DATA
 // ==========================================
 
 const influenceSectionsPage13 = [
+
+  // LEARNING
   {
     section: 'Learning',
-    items: buildItems([
-      {
-        title: 'Inquiry & Innovation',
-        description:
-          'Facilitating inquiry, dialogue, creative thinking and experimentation.',
-        indices: [32, 33, 34],
-        average: 64.53,
-      },
-      {
-        title: 'Learning Organization',
-        description:
-          'Encouraging organizational learning systems and innovation.',
-        indices: [35, 36, 37],
-        average: 59.48,
-      },
-      {
-        title: 'Leadership Development & Coaching',
-        description:
-          'Helping leaders manage challenges through dialogue and coaching.',
-        indices: [38, 39, 40],
-        average: 58.01,
-      },
-    ]),
+
+    items:
+      buildItemsPage13([
+        {
+          title:
+            'Inquiry & Innovation',
+
+          description:
+            'Facilitating inquiry, dialogue, creative thinking and experimentation.',
+
+          indices: [
+            32,
+            33,
+            34,
+          ],
+
+          average: '64.53',
+        },
+
+        {
+          title:
+            'Learning Organization',
+
+          description:
+            'Encouraging organizational learning systems and innovation.',
+
+          indices: [
+            35,
+            36,
+            37,
+          ],
+
+          average: '59.48',
+        },
+
+        {
+          title:
+            'Leadership Development & Coaching',
+
+          description:
+            'Helping leaders manage challenges through dialogue and coaching.',
+
+          indices: [
+            38,
+            39,
+            40,
+          ],
+
+          average: '58.01',
+        },
+      ]),
   },
+
+  // CONSULTING
   {
     section: 'Consulting',
-    items: buildItems([
-      {
-        title: 'Use of Self',
-        description:
-          'Awareness of self, system, integrity, trust and inclusion.',
-        indices: [11, 12],
-        average: 61.33,
-      },
-      {
-        title: 'Client Management',
-        description:
-          'Identifying sponsors, diagnosing needs and executing interventions.',
-        indices: [13, 14],
-        average: 58.3,
-      },
-    ]),
+
+    items:
+      buildItemsPage13([
+        {
+          title:
+            'Use of Self',
+
+          description:
+            'Awareness of self, system, integrity, trust and inclusion.',
+
+          indices: [
+            11,
+            12,
+          ],
+
+          average: '61.33',
+        },
+
+        {
+          title:
+            'Client Management',
+
+          description:
+            'Identifying sponsors, diagnosing needs and executing interventions.',
+
+          indices: [
+            13,
+            14,
+          ],
+
+          average: '58.30',
+        },
+      ]),
   },
 ]
-
 
 // ==========================================
 // BLOCK RENDERER
 // ==========================================
 
-function drawInfluenceBlockAuto(item, y) {
-  doc.setFillColor(248, 250, 252)
-  doc.roundedRect(20, y - 5, 170, 26, 3, 3, 'F')
+function drawInfluenceBlockPage13(
+  item,
+  y
+) {
+
+  // SHADOW
+  doc.setFillColor(
+    235,
+    235,
+    235
+  )
+
+  doc.roundedRect(
+    21,
+    y - 4,
+    170,
+    28,
+    4,
+    4,
+    'F'
+  )
+
+  // MAIN CARD
+  doc.setFillColor(
+    255,
+    255,
+    255
+  )
+
+  doc.roundedRect(
+    20,
+    y - 5,
+    170,
+    28,
+    4,
+    4,
+    'F'
+  )
+
+  // LEFT CONTENT
+  doc.setFillColor(
+    248,
+    250,
+    252
+  )
+
+  doc.roundedRect(
+    20,
+    y - 5,
+    118,
+    28,
+    4,
+    4,
+    'F'
+  )
 
   // TITLE
-  doc.setFontSize(10)
-  doc.setTextColor(...dark)
-  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9.5)
 
-  const titleSplit = doc.splitTextToSize(item.title, 35)
-  doc.text(titleSplit, 24, y + 1)
+  doc.setTextColor(...primary)
+
+  doc.setFont(
+    'helvetica',
+    'bold'
+  )
+
+  const titleSplit =
+    doc.splitTextToSize(
+      item.title,
+      32
+    )
+
+  doc.text(
+    titleSplit,
+    24,
+    y + 1
+  )
 
   // DESCRIPTION
   doc.setFontSize(7.2)
+
   doc.setTextColor(90)
-  doc.setFont('helvetica', 'normal')
 
-  const desc = doc.splitTextToSize(item.description, 90)
-  doc.text(desc, 58, y + 1)
+  doc.setFont(
+    'helvetica',
+    'normal'
+  )
 
-  // YOUR SCORE (AUTOMÁTICO)
-  doc.setFontSize(9)
+  const desc =
+    doc.splitTextToSize(
+      item.description,
+      60
+    )
+
+  doc.text(
+    desc,
+    58,
+    y + 2
+  )
+
+  // RIGHT SCORE BOX
+  doc.setFillColor(
+    255,
+    255,
+    255
+  )
+
+  doc.setDrawColor(...primary)
+
+  doc.setLineWidth(0.7)
+
+  doc.roundedRect(
+    142,
+    y - 2,
+    47,
+    22,
+    3,
+    3,
+    'FD'
+  )
+
+  // YOUR SCORE
+  doc.setFontSize(8)
+
   doc.setTextColor(...dark)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Your Score', 145, y + 2)
 
-  doc.setFontSize(14)
-  doc.text(`${item.your}%`, 152, y + 11, { align: 'center' })
+  doc.setFont(
+    'helvetica',
+    'bold'
+  )
 
-  // AVERAGE (DATA)
-  doc.setFontSize(9)
-  doc.text('Average', 145, y + 18)
+  doc.text(
+    'Your Score',
+    146,
+    y + 3
+  )
 
-  doc.setFontSize(14)
-  doc.text(`${item.average}%`, 152, y + 27, { align: 'center' })
+  doc.setFontSize(13)
+
+  doc.text(
+    `${item.your}%`,
+    165,
+    y + 10,
+    {
+      align: 'center',
+    }
+  )
+
+  // DIVIDER
+  doc.setDrawColor(220)
+
+  doc.line(
+    145,
+    y + 12,
+    184,
+    y + 12
+  )
+
+  // AVERAGE
+  doc.setFontSize(8)
+
+  doc.text(
+    'Average',
+    146,
+    y + 18
+  )
+
+  doc.setFontSize(13)
+
+  doc.text(
+    `${item.average}%`,
+    165,
+    y + 25,
+    {
+      align: 'center',
+    }
+  )
 }
 
-
 // ==========================================
-// AUTO LAYOUT ENGINE (FIXED COMPLETELY)
+// AUTO LAYOUT
 // ==========================================
 
-let yPage13 = 90
+let yPage13 = 92
 
-influenceSectionsPage13.forEach((section) => {
+influenceSectionsPage13.forEach(
+  (section) => {
 
-  // SECTION TITLE
-  doc.setFontSize(15)
-  doc.setTextColor(...dark)
-  doc.setFont('helvetica', 'bold')
-  doc.text(section.section, 20, yPage13)
+    // SECTION TITLE
+    doc.setFontSize(15)
 
-  yPage13 += 10
+    doc.setTextColor(...dark)
 
-  section.items.forEach((item) => {
-    drawInfluenceBlockAuto(item, yPage13)
-    yPage13 += 32
-  })
+    doc.setFont(
+      'helvetica',
+      'bold'
+    )
 
-  yPage13 += 12
-})
+    doc.text(
+      section.section,
+      20,
+      yPage13
+    )
 
+    yPage13 += 10
+
+    // ITEMS
+    section.items.forEach(
+      (item) => {
+
+        drawInfluenceBlockPage13(
+          item,
+          yPage13
+        )
+
+        yPage13 += 36
+      }
+    )
+
+    yPage13 += 10
+  }
+)
 
 // ==========================================
 // FOOTER
@@ -2665,13 +3605,131 @@ influenceSectionsPage13.forEach((section) => {
 
 drawFooter(13)
 
+
 // ==========================================
-// SAVE PDF
+// PDF NAME
+// ==========================================
+// ==========================================
+// PDF NAME
 // ==========================================
 
-doc.save(
+const pdfName =
   `MOST20_${data?.nombre || 'report'}.pdf`
+
+// ==========================================
+// DOWNLOAD PDF
+// ==========================================
+
+doc.save(pdfName)
+
+// ==========================================
+// PDF BLOB
+// ==========================================
+
+const pdfBlob = doc.output('blob')
+
+// ==========================================
+// DEBUG
+// ==========================================
+
+console.log('DATA:', data)
+console.log('EMAIL:', data?.email)
+
+// ==========================================
+// FORM DATA
+// ==========================================
+
+const formData = new FormData()
+
+// PDF
+formData.append(
+  'pdf',
+  pdfBlob,
+  pdfName
 )
+
+// NOMBRE
+formData.append(
+  'nombre',
+  data?.nombre || ''
+)
+
+// EMAIL
+formData.append(
+  'email',
+  data?.email || ''
+)
+
+// RESULTADOS
+formData.append(
+  'average',
+  average.toString()
+)
+
+formData.append(
+  'social_interest',
+  socialInterest.toString()
+)
+
+formData.append(
+  'social_strength',
+  socialStrength.toString()
+)
+
+formData.append(
+  'technical_interest',
+  technicalInterest.toString()
+)
+
+formData.append(
+  'technical_strength',
+  technicalStrength.toString()
+)
+
+formData.append(
+  'influence_interest',
+  influenceInterest.toString()
+)
+
+formData.append(
+  'influence_strength',
+  influenceStrength.toString()
+)
+
+// ==========================================
+// SEND EMAIL
+// ==========================================
+
+try {
+
+  const response = await axios.post(
+    '/api/send-pdf-email',
+    formData,
+    {
+      headers: {
+        'Content-Type':
+          'multipart/form-data'
+      }
+    }
+  )
+
+  console.log(
+    'EMAIL SENT:',
+    response.data
+  )
+
+}
+catch (error) {
+
+  console.error(
+    'EMAIL ERROR:',
+    error
+  )
+
+}
+
+
+
 
   // ==========================================
   }
