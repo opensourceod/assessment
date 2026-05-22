@@ -10,10 +10,15 @@ import logo from '../assets/osod.png'
 import most from '../assets/most.png'
 import banner from '../assets/banner.png'
 
+import { useRef } from 'react'
+
 
 
 
 export default function SelfAssessment() {
+
+  const submitRef = useRef(false)
+  
   const { token } = useParams()
 
   const navigate = useNavigate()
@@ -26,23 +31,35 @@ export default function SelfAssessment() {
 
   const [completado, setCompletado] =
     useState(false)
+  
+  const [enviando, setEnviando] = useState(false)
 
   const [
-    respuestasPDF,
-    setRespuestasPDF
+    respuestas,
+    setRespuestas
   ] = useState([])
 
   useEffect(() => {
+
+ 
 
   async function loadAssessment() {
 
     try {
 
-      const { data } = await axios.get(
-        `/api/self/${token}`
-      )
+    const res = await axios.get(
+  `http://localhost:8000/api/self/${token}`
+)
 
-      setData(data)
+console.log(
+  'API RESPONSE:',
+  res.data
+)
+      
+      setData({
+  ...res.data,
+  questions: res.data.preguntas
+})
 
       setEstado('ok')
 
@@ -51,7 +68,7 @@ export default function SelfAssessment() {
       console.error(error)
 
       // TOKEN YA USADO
-      if (error.response?.status === 410) {
+      if (error.res?.status === 410) {
 
         setEstado('already_done')
 
@@ -72,7 +89,7 @@ export default function SelfAssessment() {
   // ==========================================
 
 const getScore = (index) => {
-  return Number(respuestasPDF?.[index] || 0)
+  return Number(respuestas?.[index] || 0)
 }
 const avg = (arr = []) =>
   arr.length
@@ -88,7 +105,7 @@ const buildItems = (items = []) =>
     your: avg(i.indices.map(getScore)).toFixed(2)
   }))
 
-  async function downloadPDF() {
+  async function downloadPDF(respuestas) {
     
  const doc = new jsPDF(
   'p',
@@ -338,11 +355,11 @@ const buildItems = (items = []) =>
           ) / arr.length
         : 0
 
-    const getScore = index =>
-      Number(
-        respuestasPDF[index]
-          ?.puntaje || 0
-      )
+  const answersMap = Object.fromEntries(
+  respuestas.map(r => [r.pregunta_id, Number(r.puntaje)])
+)
+
+const getScore = (id) => answersMap[id] || 0
 
     const social_interest = avg([
       getScore(5),
@@ -403,7 +420,7 @@ const buildItems = (items = []) =>
       ]).toFixed(2)
 
     const total =
-      respuestasPDF.reduce(
+      respuestas.reduce(
         (acc, r) =>
           acc +
           Number(
@@ -413,10 +430,10 @@ const buildItems = (items = []) =>
       )
 
     const average =
-      respuestasPDF.length > 0
+      respuestas.length > 0
         ? (
             total /
-            respuestasPDF.length
+            respuestas.length
           ).toFixed(2)
         : '0.00'
 
@@ -528,7 +545,7 @@ const buildItems = (items = []) =>
     )
 
     doc.text(
-      data?.email || '',
+      data?.correo || '',
       25,
       145
     )
@@ -764,7 +781,7 @@ drawFooter(3)
     // )
 
     // const rows =
-    //   respuestasPDF.map(
+    //   respuestas.map(
     //     (
     //       respuesta,
     //       index
@@ -2158,9 +2175,6 @@ drawFooter(9)
 // PAGE 10 - CLUSTERS
 // ==========================================
 
-// ==========================================
-// PAGE 10 - CLUSTERS
-// ==========================================
 
 doc.addPage()
 drawHeader()
@@ -2221,44 +2235,36 @@ const safeGet = (index) => {
 // GLOBAL CALCULATIONS (FIXED)
 // ==========================================
 
-// SOCIAL INTEREST
-const socialInterestPage10 =
+const humanityAveragePage10 =
   avgPage10([
     safeGet(14),
     safeGet(15),
     safeGet(16),
+  ]).toFixed(2)
+
+const psychologyAveragePage10 =
+  avgPage10([
     safeGet(17),
     safeGet(18),
     safeGet(19),
+  ]).toFixed(2)
+
+const cultureAveragePage10 =
+  avgPage10([
     safeGet(20),
     safeGet(21),
     safeGet(22),
   ]).toFixed(2)
 
-// SOCIAL STRENGTH
-const socialStrengthPage10 =
-  avgPage10([
-    safeGet(41),
-    safeGet(42),
-    safeGet(43),
-    safeGet(44),
-    safeGet(45),
-    safeGet(46),
-    safeGet(47),
-    safeGet(48),
-    safeGet(49),
-  ]).toFixed(2)
-
 // ==========================================
 // ROW BUILDER
 // ==========================================
-
-const buildClusterRowsPage10 = (list) => {
+const buildClusterRowsPage10 = (list, average) => {
   return list.map(item => [
     item.name,
     item.desc,
     `${scorePage10(item.scoreIndex)}%`,
-    `${socialStrengthPage10}%`,
+    `${average}%`,
   ])
 }
 
@@ -2329,7 +2335,8 @@ const humanityRowsPage10 = buildClusterRowsPage10([
     desc: 'Aligning purpose with organizational mission.',
     scoreIndex: 16,
   },
-])
+], humanityAveragePage10)
+
 
 const psychologyRowsPage10 = buildClusterRowsPage10([
   {
@@ -2347,7 +2354,7 @@ const psychologyRowsPage10 = buildClusterRowsPage10([
     desc: 'Managing dysfunctional group behavior.',
     scoreIndex: 19,
   },
-])
+], psychologyAveragePage10)
 
 const cultureRowsPage10 = buildClusterRowsPage10([
   {
@@ -2365,7 +2372,7 @@ const cultureRowsPage10 = buildClusterRowsPage10([
     desc: 'Create safe discussion environments.',
     scoreIndex: 22,
   },
-])
+],cultureAveragePage10)
 
 // ==========================================
 // RENDER
@@ -3634,7 +3641,7 @@ const pdfBlob = doc.output('blob')
 // ==========================================
 
 console.log('DATA:', data)
-console.log('EMAIL:', data?.email)
+console.log('EMAIL:', data?.correo)
 
 // ==========================================
 // FORM DATA
@@ -3709,14 +3716,14 @@ for (let pair of formData.entries()) {
 
 try {
 
-  const response = await axios.post(
-  '/send-pdf-email',
+ const res= await axios.post(
+  'http://localhost:8000/send-pdf-email',
   formData
 )
 
   console.log(
     'EMAIL SENT:',
-    response.data
+    res.data
   )
 
 }
@@ -3729,58 +3736,69 @@ catch (error) {
 
 }
 
+ // TODO TU PDF PROFESIONAL
 
+  return doc.output('blob')
 
 
   // ==========================================
   }
 
-  async function handleSubmit(
-  respuestas
-) {
+  async function handleSubmit(respuestas) {
 
-  setRespuestasPDF(respuestas)
+  if (submitRef.current) return
 
-  const { data: result } =
-    await axios.post(
-      `/api/self/${token}/submit`,
-      { respuestas }
+submitRef.current = true
+setEnviando(true)
+
+  try {
+
+    setRespuestas(respuestas)
+
+    const pdfBlob = await downloadPDF(respuestas)
+
+    const formData = new FormData()
+
+    formData.append(
+      'pdf',
+      pdfBlob,
+      `MOST20_${data.nombre}.pdf`
     )
 
-  console.log(
-    'FORM TYPE:',
-    data?.form_type
-  )
+    const res = await axios.post(
+      'http://localhost:8000/send-pdf-email',
+      formData
+    )
 
-  // MOST 2.0
-  if (
-    String(data?.form_type)
-      .toLowerCase()
-      .includes('most')
-  ) {
+    console.log(res.data)
 
     setCompletado(true)
 
-    return
-  }
+  } catch (error) {
 
-  // SOLO 360
-  navigate(
-    `/dashboard/${result.subject_id}`
-  )
+    console.error(error)
+    alert('Submission failed. Please try again.')
+
+  } finally {
+    submitRef.current = false
+setEnviando(false)
+  }
 }
 
   // ==========================================
   // LOADING
   // ==========================================
 
-  if (estado === 'loading') {
-    return (
-      <CenteredMessage>
-        Loading your self-assessment...
-      </CenteredMessage>
-    )
-  }
+if (data) {
+
+  console.log(
+    'DATA COMPLETA:',
+    data
+  )
+
+}
+
+if (estado === 'loading')
 
   // ==========================================
   // COMPLETED
@@ -3865,12 +3883,6 @@ if (completado) {
 
       </p>
 
-      <button
-        onClick={downloadPDF}
-        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition"
-      >
-        Descargar PDF
-      </button>
 
     </CenteredMessage>
 
@@ -3880,7 +3892,7 @@ if (completado) {
 // ==========================================
 // MOST / 360
 // ==========================================
-
+console.log(data)
 const isMost2 = data?.form_type === 'most2'
 const is360 = data?.form_type === '360'
 // ==========================================
@@ -3938,7 +3950,7 @@ return (
       </div>
 
       <StepForm
-        preguntas={data.preguntas}
+        preguntas={data?.preguntas || []}
         onSubmit={handleSubmit}
         storageKey={`self_${token}`}
       />

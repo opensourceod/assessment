@@ -28,9 +28,9 @@ async def crear_sujeto(
     db.commit()
     db.refresh(sujeto)
 
-    background_tasks.add_task(
-        enviar_self_assessment, sujeto.nombre, sujeto.email, sujeto.self_token
-    )
+    # # background_tasks.add_task(
+    # #     enviar_self_assessment, sujeto.nombre, sujeto.email, sujeto.self_token
+    # )
 
     return sujeto
 

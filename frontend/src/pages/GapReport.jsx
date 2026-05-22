@@ -15,38 +15,58 @@ export default function GapReport() {
   const [showBreakdown, setShowBreakdown] = useState(false)
 
   const exportPDF = async () => {
-    try {
-      const input = document.getElementById('table-pdf')
 
-      if (!input) return
+  try {
 
-      const canvas = await html2canvas(input, {
-        scale: 2,
-      })
-
-      const imgData = canvas.toDataURL('image/png')
-
-      const pdf = new jsPDF('p', 'mm', 'a4')
-
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-
-      const pdfHeight =
-        (canvas.height * pdfWidth) / canvas.width
-
-      pdf.addImage(
-        imgData,
-        'PNG',
-        0,
-        10,
-        pdfWidth,
-        pdfHeight
+    const input =
+      document.getElementById(
+        'dashboard-pdf'
       )
 
-      pdf.save(`gap-report-${subjectId}.pdf`)
-    } catch (err) {
-      console.error('Error generating PDF:', err)
-    }
+    if (!input) return
+
+    const canvas =
+      await html2canvas(input, {
+        scale: 2,
+        useCORS: true,
+        scrollY: -window.scrollY,
+      })
+
+    const imgData =
+      canvas.toDataURL('image/png')
+
+    const pdf =
+      new jsPDF('p', 'mm', 'a4')
+
+    const pdfWidth =
+      pdf.internal.pageSize.getWidth()
+
+    const pdfHeight =
+      (canvas.height * pdfWidth) /
+      canvas.width
+
+    pdf.addImage(
+      imgData,
+      'PNG',
+      0,
+      0,
+      pdfWidth,
+      pdfHeight
+    )
+
+    pdf.save(
+      `${reporte.nombre}-dashboard.pdf`
+    )
+
+  } catch (err) {
+
+    console.error(
+      'Error generating PDF:',
+      err
+    )
+
   }
+}
 
   useEffect(() => {
     axios
@@ -96,7 +116,10 @@ export default function GapReport() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="max-w-5xl mx-auto py-10 px-6">
+      <div
+  id="dashboard-pdf"
+  className="max-w-5xl mx-auto py-10 px-6"
+>
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
           <div>

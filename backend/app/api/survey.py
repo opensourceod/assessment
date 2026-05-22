@@ -117,6 +117,7 @@ def obtener_self_survey(token: str, db: Session = Depends(get_db)):
     return {
         "subject_id": sujeto.id,
         "nombre": sujeto.nombre,
+        "email": sujeto.email,
         "completado": sujeto.self_completado,
         "form_type": sujeto.form_type,
         "preguntas": _format_preguntas(preguntas),

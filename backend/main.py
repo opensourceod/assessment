@@ -8,10 +8,13 @@ load_dotenv()
 from database import engine, Base
 from app.models import Subject, Evaluator, Question, Answer, SelfAnswer  # noqa: F401 — register models
 from app.api import subjects, survey, reports, admin, pruebas_email
+from app.api.email_routes import router as email_router
+
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
+    
     title="360 MOST Assessment API",
     version="1.0.0",
     description="Platform for 360° vocational assessments using the Open Source OD framework.",
@@ -32,6 +35,7 @@ app.include_router(survey.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(pruebas_email.router, prefix="/api")
+app.include_router(email_router)
 
 
 @app.get("/")
