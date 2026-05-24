@@ -3744,6 +3744,17 @@ catch (error) {
   // ==========================================
   }
 
+  const average = 0
+
+const social_interest = 0
+const social_strength = 0
+
+const technical_interest = 0
+const technical_strength = 0
+
+const influence_interest = 0
+const influence_strength = 0
+
   async function handleSubmit(respuestas) {
 
   if (submitRef.current) return
@@ -3755,9 +3766,45 @@ setEnviando(true)
 
     setRespuestas(respuestas)
 
+    const formData = new FormData()
+
     const pdfBlob = await downloadPDF(respuestas)
 
-    const formData = new FormData()
+    
+    formData.append('nombre', data?.nombre || '')
+formData.append('email', data?.email || '')
+
+formData.append('average', average || '0')
+
+formData.append(
+  'social_interest',
+  social_interest || '0'
+)
+
+formData.append(
+  'social_strength',
+  social_strength || '0'
+)
+
+formData.append(
+  'technical_interest',
+  technical_interest || '0'
+)
+
+formData.append(
+  'technical_strength',
+  technical_strength || '0'
+)
+
+formData.append(
+  'influence_interest',
+  influence_interest || '0'
+)
+
+formData.append(
+  'influence_strength',
+  influence_strength || '0'
+)
 
     formData.append(
       'pdf',
