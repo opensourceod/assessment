@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 
 function OsodLogo() {
   return (
@@ -21,16 +21,44 @@ function OsodLogo() {
   )
 }
 
+const tabClass = ({ isActive }) =>
+  isActive
+    ? 'bg-primary text-dark font-semibold text-sm px-4 py-1.5 rounded-full transition-all'
+    : 'text-gray-400 hover:text-white text-sm px-4 py-1.5 rounded-full transition-all'
+
 export default function Navbar() {
   return (
     <nav className="bg-dark text-white px-8 py-4 flex items-center justify-between">
-      <Link to="/">
+      {/* Logo */}
+      <Link to="/360-feedback">
         <OsodLogo />
       </Link>
-      <div className="flex gap-8 text-sm font-light tracking-wide">
-        <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-        <Link to="/admin" className="hover:text-primary transition-colors">Admin</Link>
+
+      {/* Assessment type tabs */}
+      <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full p-1">
+        <NavLink to="/360-feedback" className={tabClass}>
+          360 Feedback
+        </NavLink>
+        <NavLink to="/most-2.0" className={tabClass}>
+          MOST 2.0
+        </NavLink>
       </div>
+
+      {/* Admin button */}
+      <Link
+        to="/admin"
+        className="flex items-center gap-2 border border-white/20 text-gray-300 hover:border-primary hover:text-primary text-sm font-medium px-4 py-1.5 rounded-full transition-all duration-200"
+      >
+        <svg
+          width="13" height="13" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor"
+          strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+        >
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        Admin
+      </Link>
     </nav>
   )
 }

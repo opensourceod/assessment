@@ -17,6 +17,7 @@ class Subject(Base):
     self_completado = Column(Boolean, default=False)
     creado_en = Column(DateTime, default=datetime.utcnow)
     form_type = Column(Enum(FormType), nullable=False, default=FormType.most_360, server_default="most_360")
+    plan = Column(String, nullable=True)  # starter | team | organization | enterprise (null for most_2.0)
 
     evaluadores = relationship("Evaluator", back_populates="sujeto", cascade="all, delete-orphan")
     self_respuestas = relationship("SelfAnswer", back_populates="sujeto", cascade="all, delete-orphan")
