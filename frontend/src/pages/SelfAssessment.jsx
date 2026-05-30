@@ -48,7 +48,7 @@ export default function SelfAssessment() {
     try {
 
     const res = await axios.get(
-  `http://localhost:8000/api/self/${token}`
+  `/api/self/${token}`
 )
 
 console.log(
@@ -361,63 +361,45 @@ const buildItems = (items = []) =>
 
 const getScore = (id) => answersMap[id] || 0
 
-    const social_interest = avg([
-      getScore(5),
-      getScore(6),
-      getScore(7)
-    ]).toFixed(2)
+    // true cuando el formulario es MOST 2.0 (incluye preguntas de callings)
+    const isMost20 = data?.form_type === 'most_2.0'
+
+    // --- Interest (solo MOST 2.0) ---
+    // Q6-Q8 Social_interest  → IDs 52,53,54
+    // Q9-Q11 Technical_Interest → IDs 55,56,57
+    // Q12-Q14 Influence_interest → IDs 58,59,60
+    const social_interest = isMost20
+      ? avg([getScore(52), getScore(53), getScore(54)]).toFixed(2)
+      : '0.00'
+    const technical_interest = isMost20
+      ? avg([getScore(55), getScore(56), getScore(57)]).toFixed(2)
+      : '0.00'
+    const influence_interest = isMost20
+      ? avg([getScore(58), getScore(59), getScore(60)]).toFixed(2)
+      : '0.00'
 
     const social_strength = avg([
-      getScore(14),
-      getScore(15),
-      getScore(16),
-      getScore(17),
-      getScore(18),
-      getScore(19),
-      getScore(20),
-      getScore(21),
-      getScore(22)
+      getScore(15), getScore(16), getScore(17),
+      getScore(18), getScore(19), getScore(20),
+      getScore(21), getScore(22), getScore(23)
     ]).toFixed(2)
 
-    const technical_interest =
-      avg([
-        getScore(8),
-        getScore(9),
-        getScore(10)
-      ]).toFixed(2)
+    const technical_strength = isMost20
+      ? avg([
+          getScore(24), getScore(25), getScore(26),
+          getScore(27), getScore(28), getScore(29),
+          getScore(30), getScore(31), getScore(32),
+          getScore(33), getScore(34), getScore(35),
+        ]).toFixed(2)
+      : avg([
+          getScore(24), getScore(25), getScore(26),
+          getScore(27), getScore(33), getScore(34), getScore(35),
+        ]).toFixed(2)
 
-    const technical_strength =
-      avg([
-        getScore(23),
-        getScore(24),
-        getScore(25),
-        getScore(26),
-        getScore(27),
-        getScore(28),
-        getScore(29),
-        getScore(30),
-        getScore(31)
-      ]).toFixed(2)
-
-    const influence_interest =
-      avg([
-        getScore(11),
-        getScore(12),
-        getScore(13)
-      ]).toFixed(2)
-
-    const influence_strength =
-      avg([
-        getScore(32),
-        getScore(33),
-        getScore(34),
-        getScore(35),
-        getScore(36),
-        getScore(37),
-        getScore(38),
-        getScore(39),
-        getScore(40)
-      ]).toFixed(2)
+    const influence_strength = avg([
+      getScore(36), getScore(37), getScore(38),
+      getScore(39), getScore(40), getScore(41)
+    ]).toFixed(2)
 
     const total =
       respuestas.reduce(
@@ -629,66 +611,25 @@ doc.text(
 // ROW 1
 // ==========================================
 
-drawCard(
-  'Average Score',
-  average,
-  20,
-  90
-)
-
-drawCard(
-  'Social Interest',
-  social_interest,
-  110,
-  90
-)
+drawCard('Average Score', average, 20, 90)
+drawCard('Social Strength', social_strength, 110, 90)
 
 // ==========================================
 // ROW 2
 // ==========================================
 
-drawCard(
-  'Social Strength',
-  social_strength,
-  20,
-  130
-)
+if (isMost20) {
+  drawCard('Social Interest', social_interest, 20, 130)
+  drawCard('Technical Strength', technical_strength, 110, 130)
 
-drawCard(
-  'Technical Interest',
-  technical_interest,
-  110,
-  130
-)
+  drawCard('Technical Interest', technical_interest, 20, 170)
+  drawCard('Influence Strength', influence_strength, 110, 170)
 
-// ==========================================
-// ROW 3
-// ==========================================
-
-drawCard(
-  'Technical Strength',
-  technical_strength,
-  20,
-  170
-)
-
-drawCard(
-  'Influence Interest',
-  influence_interest,
-  110,
-  170
-)
-
-// ==========================================
-// ROW 4
-// ==========================================
-
-drawCard(
-  'Influence Strength',
-  influence_strength,
-  65,
-  210
-)
+  drawCard('Influence Interest', influence_interest, 65, 210)
+} else {
+  drawCard('Technical Strength', technical_strength, 20, 130)
+  drawCard('Influence Strength', influence_strength, 110, 130)
+}
 
 // ==========================================
 // FOOTER
@@ -719,41 +660,18 @@ drawFooter(2)
       75
     )
 
-   drawProgressBar(
-  'Social Interest',
-  social_interest,
-  80
-)
-
-drawProgressBar(
-  'Social Strength',
-  social_strength,
-  102
-)
-
-drawProgressBar(
-  'Technical Interest',
-  technical_interest,
-  124
-)
-
-drawProgressBar(
-  'Technical Strength',
-  technical_strength,
-  146
-)
-
-drawProgressBar(
-  'Influence Interest',
-  influence_interest,
-  168
-)
-
-drawProgressBar(
-  'Influence Strength',
-  influence_strength,
-  190
-)
+if (isMost20) {
+  drawProgressBar('Social Interest',    social_interest,    80)
+  drawProgressBar('Social Strength',    social_strength,    100)
+  drawProgressBar('Technical Interest', technical_interest, 120)
+  drawProgressBar('Technical Strength', technical_strength, 140)
+  drawProgressBar('Influence Interest', influence_interest, 160)
+  drawProgressBar('Influence Strength', influence_strength, 180)
+} else {
+  drawProgressBar('Social Strength',    social_strength,    90)
+  drawProgressBar('Technical Strength', technical_strength, 120)
+  drawProgressBar('Influence Strength', influence_strength, 150)
+}
     
 drawFooter(3)
 
@@ -924,35 +842,13 @@ doc.text(
 // AVERAGES
 // ==========================================
 
-const avgInterest = (
-  (
-    Number(
-      social_interest
-    ) +
-    Number(
-      technical_interest
-    ) +
-    Number(
-      influence_interest
-    )
-  ) /
-  3
+const avgStrength = (
+  (Number(social_strength) + Number(technical_strength) + Number(influence_strength)) / 3
 ).toFixed(2)
 
-const avgStrength = (
-  (
-    Number(
-      social_strength
-    ) +
-    Number(
-      technical_strength
-    ) +
-    Number(
-      influence_strength
-    )
-  ) /
-  3
-).toFixed(2)
+const avgInterest = isMost20
+  ? ((Number(social_interest) + Number(technical_interest) + Number(influence_interest)) / 3).toFixed(2)
+  : '0.00'
 
 // ==========================================
 // DOMAIN DATA
@@ -961,46 +857,29 @@ const avgStrength = (
 const domains = [
   {
     title: 'Social',
-
     description:
       'OD practitioners may integrate behavioral science knowledge and psychological insights, cultural pattern recognition, and human-centered ethics to drive meaningful change. The social domain also includes exploring how individual and group behaviors, shaped by biases and motivations, interact with underlying cultural assumptions and values.',
-
     yourInterest: `${social_interest}%`,
-
     yourStrength: `${social_strength}%`,
-
     avgInterest: `${avgInterest}%`,
-
     avgStrength: `${avgStrength}%`,
   },
-
   {
     title: 'Technical',
-
     description:
-      'OD practitioners may also play a crucial role in aligning resources and strategies with an organization’s vision and values, refining systems, and enhancing collaborative design that empowers employees. They may also focus on continuous improvement and data-driven interventions, aligning technical needs with social dynamics that foster a healthy, high-performing organization.',
-
+      "OD practitioners may also play a crucial role in aligning resources and strategies with an organization's vision and values, refining systems, and enhancing collaborative design that empowers employees. They may also focus on continuous improvement and data-driven interventions, aligning technical needs with social dynamics that foster a healthy, high-performing organization.",
     yourInterest: `${technical_interest}%`,
-
     yourStrength: `${technical_strength}%`,
-
     avgInterest: `${avgInterest}%`,
-
     avgStrength: `${avgStrength}%`,
   },
-
   {
     title: 'Influence',
-
     description:
       'OD practitioners may also engage in influencing and transforming organizational habits of mind, fostering learning, sense-making, and truth-telling. Their strategic and ethical approach promotes deep reflection and builds consensus, aligning individual and team perspectives with organizational goals.',
-
     yourInterest: `${influence_interest}%`,
-
     yourStrength: `${influence_strength}%`,
-
     avgInterest: `${avgInterest}%`,
-
     avgStrength: `${avgStrength}%`,
   },
 ]
@@ -1053,93 +932,44 @@ domains.forEach(
     )
 
     // RIGHT BOX
-    doc.setFillColor(
-      248,
-      250,
-      252
-    )
-
-    doc.roundedRect(
-      123,
-      currentYPage5 - 2,
-      67,
-      38,
-      3,
-      3,
-      'F'
-    )
+    const boxHeightP5 = isMost20 ? 52 : 38
+    doc.setFillColor(248, 250, 252)
+    doc.roundedRect(123, currentYPage5 - 2, 67, boxHeightP5, 3, 3, 'F')
 
     // YOUR SCORES
     doc.setFontSize(9)
-
     doc.setTextColor(...dark)
-
-    doc.setFont(
-      'helvetica',
-      'bold'
-    )
-
-    doc.text(
-      'Your Scores',
-      128,
-      currentYPage5 + 6
-    )
+    doc.setFont('helvetica', 'bold')
+    doc.text('Your Scores', 128, currentYPage5 + 6)
 
     // VALUES
     doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'normal')
 
-    doc.setFont(
-      'helvetica',
-      'normal'
-    )
-
-    doc.text(
-      `Interest: ${domain.yourInterest}`,
-      128,
-      currentYPage5 + 14
-    )
-
-    doc.text(
-      `Strength: ${domain.yourStrength}`,
-      128,
-      currentYPage5 + 21
-    )
+    if (isMost20) {
+      doc.text(`Interest: ${domain.yourInterest}`, 128, currentYPage5 + 14)
+      doc.text(`Strength: ${domain.yourStrength}`, 128, currentYPage5 + 21)
+    } else {
+      doc.text(`Strength: ${domain.yourStrength}`, 128, currentYPage5 + 14)
+    }
 
     // AVERAGE
     doc.setFontSize(9)
-
-    doc.setFont(
-      'helvetica',
-      'bold'
-    )
-
-    doc.text(
-      'Average',
-      128,
-      currentYPage5 + 29
-    )
+    doc.setFont('helvetica', 'bold')
+    doc.text('Average', 128, isMost20 ? currentYPage5 + 31 : currentYPage5 + 24)
 
     // AVERAGE VALUES
     doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'normal')
 
-    doc.setFont(
-      'helvetica',
-      'normal'
-    )
+    if (isMost20) {
+      doc.text(`Interest: ${domain.avgInterest}`, 128, currentYPage5 + 38)
+      doc.text(`Strength: ${domain.avgStrength}`, 128, currentYPage5 + 45)
+    } else {
+      doc.text(`Strength: ${domain.avgStrength}`, 128, currentYPage5 + 32)
+    }
 
-    doc.text(
-      `Interest: ${domain.avgInterest}`,
-      128,
-      currentYPage5 + 35
-    )
-
-    doc.text(
-      `Strength: ${domain.avgStrength}`,
-      128,
-      currentYPage5 + 41
-    )
-
-    currentYPage5 += 58
+    currentYPage5 += isMost20 ? 66 : 52
   }
 )
 
@@ -1507,17 +1337,15 @@ doc.text(introSplitPage7, 20, 82)
 // AVERAGES
 // ==========================================
 
-const avgInterestPage7 = (
-  (Number(social_interest) +
-   Number(technical_interest) +
-   Number(influence_interest)) / 3
-).toFixed(2)
-
 const avgStrengthPage7 = (
   (Number(social_strength) +
    Number(technical_strength) +
    Number(influence_strength)) / 3
 ).toFixed(2)
+
+const avgInterestPage7 = isMost20
+  ? ((Number(social_interest) + Number(technical_interest) + Number(influence_interest)) / 3).toFixed(2)
+  : '0.00'
 
 // ==========================================
 // DATA
@@ -1591,7 +1419,8 @@ domainsPage7.forEach((domain) => {
   doc.setDrawColor(...primary)
   doc.setLineWidth(0.5)
 
-  doc.roundedRect(125, currentYPage7, 65, cardHeight, 3, 3, 'FD')
+  const p7CardH = isMost20 ? 64 : cardHeight
+  doc.roundedRect(125, currentYPage7, 65, p7CardH, 3, 3, 'FD')
 
   // YOUR SCORES
   doc.setFontSize(9)
@@ -1601,24 +1430,34 @@ domainsPage7.forEach((domain) => {
 
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'normal')
-  doc.text(`Interest: ${domain.yourInterest}`, 130, currentYPage7 + 16)
-  doc.text(`Strength: ${domain.yourStrength}`, 130, currentYPage7 + 23)
+
+  if (isMost20) {
+    doc.text(`Interest: ${domain.yourInterest}`, 130, currentYPage7 + 16)
+    doc.text(`Strength: ${domain.yourStrength}`, 130, currentYPage7 + 23)
+  } else {
+    doc.text(`Strength: ${domain.yourStrength}`, 130, currentYPage7 + 16)
+  }
 
   // AVERAGE
   doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
-  doc.text('Average', 130, currentYPage7 + 32)
+  doc.text('Average', 130, isMost20 ? currentYPage7 + 36 : currentYPage7 + 28)
 
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'normal')
-  doc.text(`Interest: ${domain.avgInterest}`, 130, currentYPage7 + 38)
-  doc.text(`Strength: ${domain.avgStrength}`, 130, currentYPage7 + 44)
+
+  if (isMost20) {
+    doc.text(`Interest: ${domain.avgInterest}`, 130, currentYPage7 + 44)
+    doc.text(`Strength: ${domain.avgStrength}`, 130, currentYPage7 + 51)
+  } else {
+    doc.text(`Strength: ${domain.avgStrength}`, 130, currentYPage7 + 36)
+  }
 
   // ==========================================
   // SPACING CONTROL
   // ==========================================
 
-  currentYPage7 += cardHeight + 8
+  currentYPage7 += p7CardH + 8
 })
 
 // ==========================================
@@ -1681,44 +1520,32 @@ const pdfCalcPage8 = (indexes) => {
 // ==========================================
 
 // STRATEGY
-const strategy_interest = pdfCalcPage8([8])
+const strategy_strength = pdfCalcPage8([24, 25, 26])
 
-const strategy_strength = pdfCalcPage8([
-  23,
-  24,
-  25,
-])
+// DESIGN — IDs 28-29 excluded from most_360
+const design_strength = isMost20
+  ? pdfCalcPage8([27, 28, 29])
+  : pdfCalcPage8([27])
 
-// DESIGN
-const design_interest = pdfCalcPage8([9])
-
-const design_strength = pdfCalcPage8([
-  26,
-  27,
-  28,
-])
-
-// PERFORMANCE
-const performance_interest = pdfCalcPage8([10])
-
-const performance_strength = pdfCalcPage8([
-  29,
-  30,
-  31,
-])
+// PERFORMANCE — IDs 30-32 excluded from most_360
+const performance_strength = isMost20
+  ? pdfCalcPage8([30, 31, 32])
+  : '0.00'
 
 // GLOBAL AVERAGES
-const avgTechnicalInterest = avgPage8([
-  strategy_interest,
-  design_interest,
-  performance_interest,
-]).toFixed(2)
-
 const avgTechnicalStrength = avgPage8([
   strategy_strength,
   design_strength,
   performance_strength,
 ]).toFixed(2)
+
+// TECHNICAL INTEREST (MOST 2.0 only) — IDs 55, 56, 57
+const strategy_interest = isMost20 ? pdfCalcPage8([55]) : '0.00'
+const design_interest = isMost20 ? pdfCalcPage8([56]) : '0.00'
+const performance_interest = isMost20 ? pdfCalcPage8([57]) : '0.00'
+const avgTechnicalInterest = isMost20
+  ? avgPage8([strategy_interest, design_interest, performance_interest]).toFixed(2)
+  : '0.00'
 
 // ==========================================
 // DATA
@@ -1729,7 +1556,6 @@ const technicalCategoriesPage8 = [
     title: 'Strategy',
     description:
       'Aligning resources with strategic goals, continuously developing and assessing strategies, and using diverse planning approaches to ensure adaptable plans in dynamic business environments.',
-
     yourInterest: `${strategy_interest}%`,
     yourStrength: `${strategy_strength}%`,
     avgInterest: `${avgTechnicalInterest}%`,
@@ -1739,7 +1565,6 @@ const technicalCategoriesPage8 = [
     title: 'Design',
     description:
       'Refining systems and structures to enhance individual and team performance and fostering interdepartmental coordination to support a collaborative culture aligned with strategic goals.',
-
     yourInterest: `${design_interest}%`,
     yourStrength: `${design_strength}%`,
     avgInterest: `${avgTechnicalInterest}%`,
@@ -1749,7 +1574,6 @@ const technicalCategoriesPage8 = [
     title: 'Performance',
     description:
       'Ensuring organizations achieve strategic goals using measurable indicators and data-informed interventions that align technical needs with social dynamics, enhancing decision-making and organizational performance.',
-
     yourInterest: `${performance_interest}%`,
     yourStrength: `${performance_strength}%`,
     avgInterest: `${avgTechnicalInterest}%`,
@@ -1802,15 +1626,8 @@ technicalCategoriesPage8.forEach((item) => {
   doc.setDrawColor(...primary)
   doc.setLineWidth(0.7)
 
-  doc.roundedRect(
-    142,
-    currentYPage8 + 3,
-    47,
-    cardHeightPage8 - 6,
-    3,
-    3,
-    'FD'
-  )
+  const p8CardH = isMost20 ? cardHeightPage8 + 12 : cardHeightPage8 - 6
+  doc.roundedRect(142, currentYPage8 + 3, 47, p8CardH, 3, 3, 'FD')
 
   // your scores
   doc.setFontSize(8.5)
@@ -1822,26 +1639,34 @@ technicalCategoriesPage8.forEach((item) => {
   doc.setFontSize(7.2)
   doc.setFont('helvetica', 'normal')
 
-  doc.text(`Interest: ${item.yourInterest}`, 146, currentYPage8 + 19)
-  doc.text(`Strength: ${item.yourStrength}`, 146, currentYPage8 + 26)
+  if (isMost20) {
+    doc.text(`Interest: ${item.yourInterest}`, 146, currentYPage8 + 19)
+    doc.text(`Strength: ${item.yourStrength}`, 146, currentYPage8 + 26)
+  } else {
+    doc.text(`Strength: ${item.yourStrength}`, 146, currentYPage8 + 19)
+  }
 
   // divider
   doc.setDrawColor(220)
-  doc.line(145, currentYPage8 + 31, 184, currentYPage8 + 31)
+  doc.line(145, isMost20 ? currentYPage8 + 33 : currentYPage8 + 26, 184, isMost20 ? currentYPage8 + 33 : currentYPage8 + 26)
 
   // average
   doc.setFontSize(8.5)
   doc.setFont('helvetica', 'bold')
 
-  doc.text('Average', 146, currentYPage8 + 38)
+  doc.text('Average', 146, isMost20 ? currentYPage8 + 40 : currentYPage8 + 33)
 
   doc.setFontSize(7.2)
   doc.setFont('helvetica', 'normal')
 
-  doc.text(`Interest: ${item.avgInterest}`, 146, currentYPage8 + 45)
-  doc.text(`Strength: ${item.avgStrength}`, 146, currentYPage8 + 51)
+  if (isMost20) {
+    doc.text(`Interest: ${item.avgInterest}`, 146, currentYPage8 + 48)
+    doc.text(`Strength: ${item.avgStrength}`, 146, currentYPage8 + 55)
+  } else {
+    doc.text(`Strength: ${item.avgStrength}`, 146, currentYPage8 + 42)
+  }
 
-  currentYPage8 += cardHeightPage8 + 10
+  currentYPage8 += (isMost20 ? cardHeightPage8 + 22 : cardHeightPage8 + 10)
 })
 
 // ==========================================
@@ -1895,62 +1720,43 @@ const avgPage9 = (arr) => {
 // CALCULATED VALUES
 // ==========================================
 
-// CONSULTING
-const consulting_interest =
-  avgPage9([
-    getScore(11)
-  ]).toFixed(2)
-
+// CONSULTING (Q36-Q38)
 const consulting_strength =
   avgPage9([
-    getScore(32),
-    getScore(33),
-    getScore(34)
+    getScore(36),
+    getScore(37),
+    getScore(38)
   ]).toFixed(2)
 
-// LEARNING
-const learning_interest =
-  avgPage9([
-    getScore(12)
-  ]).toFixed(2)
-
+// LEARNING (Q39-Q41)
 const learning_strength =
   avgPage9([
-    getScore(35),
-    getScore(36),
-    getScore(37)
-  ]).toFixed(2)
-
-// CHANGE
-const change_interest =
-  avgPage9([
-    getScore(13)
-  ]).toFixed(2)
-
-const change_strength =
-  avgPage9([
-    getScore(38),
     getScore(39),
-    getScore(40)
+    getScore(40),
+    getScore(41)
   ]).toFixed(2)
+
+// INFLUENCE INTEREST (MOST 2.0 only) — IDs 58, 59
+const consulting_interest = isMost20
+  ? avgPage9([getScore(58), getScore(60)]).toFixed(2)
+  : '0.00'
+const learning_interest = isMost20
+  ? avgPage9([getScore(59)]).toFixed(2)
+  : '0.00'
 
 // ==========================================
 // AVERAGES
 // ==========================================
 
-const avgInfluenceInterest =
-  avgPage9([
-    consulting_interest,
-    learning_interest,
-    change_interest
-  ]).toFixed(2)
-
 const avgInfluenceStrength =
   avgPage9([
     consulting_strength,
-    learning_strength,
-    change_strength
+    learning_strength
   ]).toFixed(2)
+
+const avgInfluenceInterest = isMost20
+  ? avgPage9([consulting_interest, learning_interest]).toFixed(2)
+  : '0.00'
 
 // ==========================================
 // DATA
@@ -1965,7 +1771,6 @@ const influenceCategoriesPage9 = [
 
     yourInterest: `${consulting_interest}%`,
     yourStrength: `${consulting_strength}%`,
-
     avgInterest: `${avgInfluenceInterest}%`,
     avgStrength: `${avgInfluenceStrength}%`,
   },
@@ -1978,20 +1783,6 @@ const influenceCategoriesPage9 = [
 
     yourInterest: `${learning_interest}%`,
     yourStrength: `${learning_strength}%`,
-
-    avgInterest: `${avgInfluenceInterest}%`,
-    avgStrength: `${avgInfluenceStrength}%`,
-  },
-
-  {
-    title: 'Change',
-
-    description:
-      'Leveraging change management knowledge and insights to design goal-oriented interventions, facilitate stakeholder consensus, and manage organizational changes efficiently to ensure smooth transitions and goal attainment.',
-
-    yourInterest: `${change_interest}%`,
-    yourStrength: `${change_strength}%`,
-
     avgInterest: `${avgInfluenceInterest}%`,
     avgStrength: `${avgInfluenceStrength}%`,
   },
@@ -2088,79 +1879,48 @@ influenceCategoriesPage9.forEach((item) => {
   doc.setDrawColor(...primary)
   doc.setLineWidth(0.7)
 
-  doc.roundedRect(
-    142,
-    currentYPage9 + 3,
-    47,
-    influenceCardHeight - 6,
-    3,
-    3,
-    'FD'
-  )
+  const p9CardH = isMost20 ? influenceCardHeight + 12 : influenceCardHeight - 6
+  doc.roundedRect(142, currentYPage9 + 3, 47, p9CardH, 3, 3, 'FD')
 
   // YOUR SCORES
   doc.setFontSize(8.5)
   doc.setTextColor(...dark)
   doc.setFont('helvetica', 'bold')
 
-  doc.text(
-    'Your Scores',
-    146,
-    currentYPage9 + 11
-  )
+  doc.text('Your Scores', 146, currentYPage9 + 11)
 
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'normal')
 
-  doc.text(
-    `Interest: ${item.yourInterest}`,
-    146,
-    currentYPage9 + 19
-  )
-
-  doc.text(
-    `Strength: ${item.yourStrength}`,
-    146,
-    currentYPage9 + 26
-  )
+  if (isMost20) {
+    doc.text(`Interest: ${item.yourInterest}`, 146, currentYPage9 + 19)
+    doc.text(`Strength: ${item.yourStrength}`, 146, currentYPage9 + 26)
+  } else {
+    doc.text(`Strength: ${item.yourStrength}`, 146, currentYPage9 + 19)
+  }
 
   // DIVIDER
   doc.setDrawColor(220)
-
-  doc.line(
-    145,
-    currentYPage9 + 31,
-    184,
-    currentYPage9 + 31
-  )
+  doc.line(145, isMost20 ? currentYPage9 + 33 : currentYPage9 + 26, 184, isMost20 ? currentYPage9 + 33 : currentYPage9 + 26)
 
   // AVERAGE
   doc.setFontSize(8.5)
   doc.setFont('helvetica', 'bold')
 
-  doc.text(
-    'Average',
-    146,
-    currentYPage9 + 38
-  )
+  doc.text('Average', 146, isMost20 ? currentYPage9 + 40 : currentYPage9 + 33)
 
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'normal')
 
-  doc.text(
-    `Interest: ${item.avgInterest}`,
-    146,
-    currentYPage9 + 45
-  )
-
-  doc.text(
-    `Strength: ${item.avgStrength}`,
-    146,
-    currentYPage9 + 51
-  )
+  if (isMost20) {
+    doc.text(`Interest: ${item.avgInterest}`, 146, currentYPage9 + 48)
+    doc.text(`Strength: ${item.avgStrength}`, 146, currentYPage9 + 55)
+  } else {
+    doc.text(`Strength: ${item.avgStrength}`, 146, currentYPage9 + 42)
+  }
 
   // NEXT CARD
-  currentYPage9 += influenceCardHeight + 10
+  currentYPage9 += isMost20 ? influenceCardHeight + 22 : influenceCardHeight + 10
 })
 
 // ==========================================
@@ -2237,23 +1997,23 @@ const safeGet = (index) => {
 
 const humanityAveragePage10 =
   avgPage10([
-    safeGet(14),
-    safeGet(15),
-    safeGet(16),
+    safeGet(21),
+    safeGet(22),
+    safeGet(23),
   ]).toFixed(2)
 
 const psychologyAveragePage10 =
   avgPage10([
-    safeGet(17),
     safeGet(18),
     safeGet(19),
+    safeGet(20),
   ]).toFixed(2)
 
 const cultureAveragePage10 =
   avgPage10([
-    safeGet(20),
-    safeGet(21),
-    safeGet(22),
+    safeGet(15),
+    safeGet(16),
+    safeGet(17),
   ]).toFixed(2)
 
 // ==========================================
@@ -2323,17 +2083,17 @@ const humanityRowsPage10 = buildClusterRowsPage10([
   {
     name: 'DE&I',
     desc: 'Inspiring, developing, and sustaining measurable diversity, equity, and inclusion.',
-    scoreIndex: 14,
+    scoreIndex: 21,
   },
   {
     name: 'Ethics & Citizenship',
     desc: 'Cultivating ethical decision making and citizenship.',
-    scoreIndex: 15,
+    scoreIndex: 22,
   },
   {
     name: 'Meaning & Well-being',
     desc: 'Aligning purpose with organizational mission.',
-    scoreIndex: 16,
+    scoreIndex: 23,
   },
 ], humanityAveragePage10)
 
@@ -2342,17 +2102,17 @@ const psychologyRowsPage10 = buildClusterRowsPage10([
   {
     name: 'Org Behavior',
     desc: 'Motivating employees and addressing resistance to change.',
-    scoreIndex: 17,
+    scoreIndex: 18,
   },
   {
     name: 'Team Development',
     desc: 'Developing cohesive and adaptive teams.',
-    scoreIndex: 18,
+    scoreIndex: 19,
   },
   {
     name: 'Group Dynamics',
     desc: 'Managing dysfunctional group behavior.',
-    scoreIndex: 19,
+    scoreIndex: 20,
   },
 ], psychologyAveragePage10)
 
@@ -2360,19 +2120,19 @@ const cultureRowsPage10 = buildClusterRowsPage10([
   {
     name: 'Mission Alignment',
     desc: 'Align culture with vision and values.',
-    scoreIndex: 20,
+    scoreIndex: 15,
   },
   {
     name: 'Surfacing Assumptions',
     desc: 'Address limiting assumptions.',
-    scoreIndex: 21,
+    scoreIndex: 16,
   },
   {
     name: 'Psychological Safety',
     desc: 'Create safe discussion environments.',
-    scoreIndex: 22,
+    scoreIndex: 17,
   },
-],cultureAveragePage10)
+], cultureAveragePage10)
 
 // ==========================================
 // RENDER
@@ -2452,40 +2212,20 @@ const pdfCalcPage11 = (
 
 // DESIGN
 const organizationalAgility =
-  pdfCalcPage11([
-    32,
-    33,
-    34,
-  ])
+  pdfCalcPage11([27])
 
 const systemsStructures =
-  pdfCalcPage11([
-    32,
-    33,
-    34,
-  ])
+  pdfCalcPage11([28])
 
 const efficiencyEffectiveness =
-  pdfCalcPage11([
-    32,
-    33,
-    34,
-  ])
+  pdfCalcPage11([29])
 
 // PERFORMANCE
 const dataAnalysisPresentation =
-  pdfCalcPage11([
-    35,
-    36,
-    37,
-  ])
+  pdfCalcPage11([30, 31])
 
 const balancedScorecard =
-  pdfCalcPage11([
-    38,
-    39,
-    40,
-  ])
+  pdfCalcPage11([32])
 
 // ==========================================
 // DATA STRUCTURE
@@ -2892,11 +2632,7 @@ const influenceSectionsPage12 = [
           description:
             'Facilitating inquiry, dialogue, creative thinking and experimentation.',
 
-          indices: [
-            32,
-            33,
-            34,
-          ],
+          indices: [39],
 
           average: '64.53',
         },
@@ -2908,11 +2644,7 @@ const influenceSectionsPage12 = [
           description:
             'Encouraging organizational learning systems and innovation.',
 
-          indices: [
-            35,
-            36,
-            37,
-          ],
+          indices: [40],
 
           average: '59.48',
         },
@@ -2924,11 +2656,7 @@ const influenceSectionsPage12 = [
           description:
             'Helping leaders manage challenges through dialogue and coaching.',
 
-          indices: [
-            38,
-            39,
-            40,
-          ],
+          indices: [41],
 
           average: '58.01',
         },
@@ -2948,10 +2676,7 @@ const influenceSectionsPage12 = [
           description:
             'Awareness of self, system, integrity, trust and inclusion.',
 
-          indices: [
-            11,
-            12,
-          ],
+          indices: [36, 38],
 
           average: '61.33',
         },
@@ -2963,10 +2688,7 @@ const influenceSectionsPage12 = [
           description:
             'Identifying sponsors, diagnosing needs and executing interventions.',
 
-          indices: [
-            13,
-            14,
-          ],
+          indices: [37],
 
           average: '58.30',
         },
@@ -3675,18 +3397,8 @@ formData.append(
 )
 
 formData.append(
-  'social_interest',
-   social_interest.toString()
-)
-
-formData.append(
   'social_strength',
   social_strength.toString()
-)
-
-formData.append(
-  'technical_interest',
-  technical_interest.toString()
 )
 
 formData.append(
@@ -3695,16 +3407,15 @@ formData.append(
 )
 
 formData.append(
-  'influence_interest',
-  influence_interest.toString()
-)
-
-formData.append(
   'influence_strength',
   influence_strength.toString()
 )
 
-
+if (isMost20) {
+  formData.append('social_interest', social_interest.toString())
+  formData.append('technical_interest', technical_interest.toString())
+  formData.append('influence_interest', influence_interest.toString())
+}
 
 console.log("FORMDATA CONTENT:")
 for (let pair of formData.entries()) {
@@ -3717,7 +3428,7 @@ for (let pair of formData.entries()) {
 try {
 
  const res= await axios.post(
-  'http://localhost:8000/send-pdf-email',
+  '/send-pdf-email',
   formData
 )
 
@@ -3746,13 +3457,8 @@ catch (error) {
 
   const average = 0
 
-const social_interest = 0
 const social_strength = 0
-
-const technical_interest = 0
 const technical_strength = 0
-
-const influence_interest = 0
 const influence_strength = 0
 
   async function handleSubmit(respuestas) {
@@ -3777,28 +3483,13 @@ formData.append('email', data?.email || '')
 formData.append('average', average || '0')
 
 formData.append(
-  'social_interest',
-  social_interest || '0'
-)
-
-formData.append(
   'social_strength',
   social_strength || '0'
 )
 
 formData.append(
-  'technical_interest',
-  technical_interest || '0'
-)
-
-formData.append(
   'technical_strength',
   technical_strength || '0'
-)
-
-formData.append(
-  'influence_interest',
-  influence_interest || '0'
 )
 
 formData.append(
@@ -3813,7 +3504,7 @@ formData.append(
     )
 
     const res = await axios.post(
-      'http://localhost:8000/send-pdf-email',
+      '/send-pdf-email',
       formData
     )
 
@@ -3940,8 +3631,8 @@ if (completado) {
 // MOST / 360
 // ==========================================
 console.log(data)
-const isMost2 = data?.form_type === 'most2'
-const is360 = data?.form_type === '360'
+const isMost2 = data?.form_type === 'most_2.0'
+const is360 = data?.form_type === 'most_360'
 // ==========================================
 // MAIN
 // ==========================================

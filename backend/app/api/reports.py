@@ -1,10 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from pydantic import BaseModel
 from database import get_db
 from app.models import Subject, Evaluator, Question, Answer, SelfAnswer
 from app.models.evaluator import RelationshipType
 from app.schemas.report import GapReportOut, CategoryScore
+from app.services.email_service import enviar_reporte_360
+
+
+class EmailReportRequest(BaseModel):
+    pdf_base64: str
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -96,3 +102,29 @@ def obtener_reporte(subject_id: int, db: Session = Depends(get_db)):
         evaluadores_completados=completados,
         categorias=categorias_out,
     )
+
+
+@router.post("/{subject_id}/send-report-email")
+async def enviar_reporte_email(
+    subject_id: int,
+    payload: EmailReportRequest,
+    db: Session = Depends(get_db),
+):
+    import base64
+
+    sujeto = db.query(Subject).filter(Subject.id == subject_id).first()
+    if not sujeto:
+        raise HTTPException(status_code=404, detail="Subject not found")
+
+    try:
+        pdf_bytes = base64.b64decode(payload.pdf_base64)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid PDF data")
+
+    await enviar_reporte_360(
+        nombre=sujeto.nombre,
+        email=sujeto.email,
+        pdf_bytes=pdf_bytes,
+    )
+
+    return {"success": True, "sent_to": sujeto.email}

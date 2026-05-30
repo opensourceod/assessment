@@ -7,6 +7,18 @@ from app.services.email_service import enviar_invitacion, enviar_self_assessment
 
 router = APIRouter(prefix="/subjects", tags=["subjects"])
 
+# Maximum number of evaluators allowed per plan tier.
+# Must stay in sync with PLAN_EVALUATOR_LIMITS in app/schemas/subject.py.
+PLAN_EVALUATOR_LIMITS: dict[str, int] = {
+    "starter":      10,
+    "team":         20,
+    "organization": 75,
+    "enterprise":   200,
+}
+
+# Valid plan identifiers — rejects arbitrary strings coming from the client
+VALID_PLANS = set(PLAN_EVALUATOR_LIMITS.keys())
+
 
 @router.post("/", response_model=SubjectOut, status_code=201)
 async def crear_sujeto(
@@ -18,19 +30,20 @@ async def crear_sujeto(
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered")
 
+    # Validate plan value when provided
+    if data.plan and data.plan not in VALID_PLANS:
+        raise HTTPException(status_code=422, detail=f"Invalid plan '{data.plan}'. Must be one of: {', '.join(VALID_PLANS)}")
+
     sujeto = Subject(
         nombre=data.nombre,
         email=data.email,
         departamento=data.departamento,
         form_type=data.form_type,
+        plan=data.plan,
     )
     db.add(sujeto)
     db.commit()
     db.refresh(sujeto)
-
-    # # background_tasks.add_task(
-    # #     enviar_self_assessment, sujeto.nombre, sujeto.email, sujeto.self_token
-    # )
 
     return sujeto
 
@@ -53,6 +66,16 @@ async def agregar_evaluador(
     sujeto = db.query(Subject).filter(Subject.id == subject_id).first()
     if not sujeto:
         raise HTTPException(status_code=404, detail="Subject not found")
+
+    # Enforce plan-based evaluator limit
+    limit = PLAN_EVALUATOR_LIMITS.get(sujeto.plan) if sujeto.plan else None
+    if limit is not None:
+        current_count = db.query(Evaluator).filter(Evaluator.subject_id == subject_id).count()
+        if current_count >= limit:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Evaluator limit reached. Your {sujeto.plan.capitalize()} plan allows up to {limit} evaluators.",
+            )
 
     evaluador = Evaluator(
         subject_id=subject_id,

@@ -1,15 +1,8 @@
 import os
+import base64
 from dotenv import load_dotenv
 import httpx
 from fastapi import HTTPException
-import base64
-import os
-import httpx
-from fastapi import HTTPException
-
-from fastapi.responses import JSONResponse
-
-import re
 
 
 load_dotenv()
@@ -94,20 +87,18 @@ def _html_invitacion(nombre_evaluador: str, nombre_sujeto: str, token: str) -> s
 
 def _html_self_assessment(nombre: str, token: str) -> str:
     survey_url = f"{FRONTEND_URL}/self/{token}"
-    return  f"""
+    return f"""
 <html>
-<body>
-  <h1>MOST 2.0 Report</h1>
-
-  <p>Hello <b>{nombre}</b>,</p>
-
-  <p>Your report is ready.</p>
-
-  <p>Please find your attached PDF for full details.</p>
-
+<body style="font-family:Arial;background:#f5f5f5;padding:30px;">
+  <div style="max-width:600px;margin:auto;background:white;padding:30px;border-radius:10px;">
+    <h1 style="color:#29b8dc;">360 MOST Assessment</h1>
+    <p>Hello <b>{nombre}</b>,</p>
+    <p>Your self-assessment is ready. Please complete it using the link below:</p>
+    <p><a href="{survey_url}" style="color:#29b8dc;">{survey_url}</a></p>
+    <p>Please find your attached PDF for full details.</p>
+  </div>
 </body>
 </html>
-
     """
 
 async def enviar_invitacion(nombre_evaluador: str, email: str, nombre_sujeto: str, token: str):
@@ -170,6 +161,39 @@ async def _enviar_email_brevo(to_email: str, to_name: str, subject: str, html_co
     return {"success": True, "message": "Correo enviado correctamente"}
 
 
+
+
+async def enviar_reporte_360(nombre: str, email: str, pdf_bytes: bytes):
+    html = f"""
+    <html>
+    <body style="font-family:Arial;background:#f5f5f5;padding:30px;">
+      <div style="max-width:600px;margin:auto;background:white;padding:30px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <h1 style="color:#29b8dc;margin-bottom:4px;">360 MOST Assessment Report</h1>
+        <p style="color:#9ca3af;font-size:12px;margin-top:0;">Confidential · {nombre}</p>
+        <p>Hello <b>{nombre}</b>,</p>
+        <p>Your <b>360 MOST Assessment Report</b> is now ready. Please find your full PDF report attached.</p>
+        <p>The report includes your competency scores across the three OD domains:</p>
+        <ul>
+          <li><b style="color:#ef4444;">Social</b> — Behavioral science, culture, and human-centered competencies</li>
+          <li><b style="color:#3b82f6;">Technical</b> — Systems, strategy, and organizational design</li>
+          <li><b style="color:#f59e0b;">Influence</b> — OD competencies, facilitation, and coaching</li>
+        </ul>
+        <p style="color:#666;font-size:12px;border-top:1px solid #e5e7eb;padding-top:12px;margin-top:20px;">
+          Powered by <b>Open Source OD</b> · 360 MOST Assessment
+        </p>
+      </div>
+    </body>
+    </html>
+    """
+    encoded_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
+    attachment = [{"name": f"360_MOST_Report_{nombre}.pdf", "content": encoded_pdf}]
+    return await _enviar_email_brevo(
+        to_email=email,
+        to_name=nombre,
+        subject=f"Your 360 MOST Assessment Report — {nombre}",
+        html_content=html,
+        attachment=attachment,
+    )
 
 
 async def enviar_most_pdf(nombre, email, average, social_interest,
