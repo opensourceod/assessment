@@ -4,7 +4,6 @@ from database import get_db
 from app.models import Subject, Evaluator
 from app.schemas import SubjectCreate, SubjectOut, SubjectDetail, EvaluatorCreate, EvaluatorOut
 from app.services.email_service import enviar_invitacion, enviar_self_assessment
-from app.services.circle_service import registrar_miembro_circle
 
 router = APIRouter(prefix="/subjects", tags=["subjects"])
 
@@ -45,11 +44,6 @@ async def crear_sujeto(
     db.add(sujeto)
     db.commit()
     db.refresh(sujeto)
-
-    if sujeto.plan:
-        background_tasks.add_task(
-            registrar_miembro_circle, sujeto.nombre, sujeto.email, sujeto.plan
-        )
 
     return sujeto
 
