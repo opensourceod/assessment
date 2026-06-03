@@ -3347,179 +3347,78 @@ const pdfName =
   `MOST20_${data?.nombre || 'report'}.pdf`
 
 // ==========================================
-// DOWNLOAD PDF
+// DOWNLOAD PDF & RETURN
 // ==========================================
 
-doc.save(pdfName)
+  doc.save(pdfName)
+  const pdfBlob = doc.output('blob')
 
-// ==========================================
-// PDF BLOB
-// ==========================================
-
-const pdfBlob = doc.output('blob')
-
-// ==========================================
-// DEBUG
-// ==========================================
-
-console.log('DATA:', data)
-console.log('EMAIL:', data?.correo)
-
-// ==========================================
-// FORM DATA
-// ==========================================
-
-const formData = new FormData()
-
-// PDF
-formData.append(
-  'pdf',
-  pdfBlob,
-  pdfName
-)
-
-// NOMBRE
-formData.append(
-  'nombre',
-  data?.nombre || ''
-)
-
-// EMAIL
-formData.append(
-  'email',
-  data?.email || ''
-)
-
-// RESULTADOS
-formData.append(
-  'average',
-  average.toString()
-)
-
-formData.append(
-  'social_strength',
-  social_strength.toString()
-)
-
-formData.append(
-  'technical_strength',
-  technical_strength.toString()
-)
-
-formData.append(
-  'influence_strength',
-  influence_strength.toString()
-)
-
-if (isMost20) {
-  formData.append('social_interest', social_interest.toString())
-  formData.append('technical_interest', technical_interest.toString())
-  formData.append('influence_interest', influence_interest.toString())
-}
-
-console.log("FORMDATA CONTENT:")
-for (let pair of formData.entries()) {
-  console.log(pair[0], pair[1])
-}
-// ==========================================
-// SEND EMAIL
-// ==========================================
-
-try {
-
- const res= await axios.post(
-  '/send-pdf-email',
-  formData
-)
-
-  console.log(
-    'EMAIL SENT:',
-    res.data
-  )
-
-}
-catch (error) {
-
-  console.error(
-    'EMAIL ERROR:',
-    error
-  )
-
-}
-
- // TODO TU PDF PROFESIONAL
-
-  return doc.output('blob')
-
-
-  // ==========================================
+  return {
+    pdfBlob,
+    scores: {
+      average,
+      social_strength,
+      technical_strength,
+      influence_strength,
+      social_interest,
+      technical_interest,
+      influence_interest
+    }
   }
+}
 
-  const average = 0
-
-const social_strength = 0
-const technical_strength = 0
-const influence_strength = 0
-
-  async function handleSubmit(respuestas) {
-
+async function handleSubmit(respuestas) {
   if (submitRef.current) return
 
-submitRef.current = true
-setEnviando(true)
+  submitRef.current = true
+  setEnviando(true)
 
   try {
-
     setRespuestas(respuestas)
 
+    const { pdfBlob, scores } = await downloadPDF(respuestas)
+
     const formData = new FormData()
-
-    const pdfBlob = await downloadPDF(respuestas)
-
-    
     formData.append('nombre', data?.nombre || '')
-formData.append('email', data?.email || '')
+    formData.append('email', data?.email || '')
 
-formData.append('average', average || '0')
+    formData.append('average', scores.average || '0')
+    formData.append('social_strength', scores.social_strength || '0')
+    formData.append('technical_strength', scores.technical_strength || '0')
+    formData.append('influence_strength', scores.influence_strength || '0')
 
-formData.append(
-  'social_strength',
-  social_strength || '0'
-)
-
-formData.append(
-  'technical_strength',
-  technical_strength || '0'
-)
-
-formData.append(
-  'influence_strength',
-  influence_strength || '0'
-)
+    const isMost20 = data?.form_type === 'most_2.0'
+    if (isMost20) {
+      formData.append('social_interest', scores.social_interest || '0')
+      formData.append('technical_interest', scores.technical_interest || '0')
+      formData.append('influence_interest', scores.influence_interest || '0')
+    }
 
     formData.append(
       'pdf',
       pdfBlob,
-      `MOST20_${data.nombre}.pdf`
+      `MOST20_${data?.nombre || 'report'}.pdf`
     )
+
+    console.log("FORMDATA CONTENT:")
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1])
+    }
 
     const res = await axios.post(
       '/send-pdf-email',
       formData
     )
 
-    console.log(res.data)
-
+    console.log('EMAIL SENT:', res.data)
     setCompletado(true)
 
   } catch (error) {
-
-    console.error(error)
+    console.error('SUBMISSION ERROR:', error)
     alert('Submission failed. Please try again.')
-
   } finally {
     submitRef.current = false
-setEnviando(false)
+    setEnviando(false)
   }
 }
 
