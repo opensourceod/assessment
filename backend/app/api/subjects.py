@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from database import get_db
-from app.models import Subject, Evaluator
+from app.models import Subject, Evaluator, User
 from app.schemas import SubjectCreate, SubjectOut, SubjectDetail, EvaluatorCreate, EvaluatorOut
 from app.services.email_service import enviar_invitacion, enviar_self_assessment
+from app.services.auth import current_active_user
+from app.models.question import FormType
 
 router = APIRouter(prefix="/subjects", tags=["subjects"])
 
@@ -20,6 +22,59 @@ PLAN_EVALUATOR_LIMITS: dict[str, int] = {
 VALID_PLANS = set(PLAN_EVALUATOR_LIMITS.keys())
 
 
+@router.get("/mine", response_model=SubjectOut)
+def obtener_sujeto_propio(
+    current_user: User = Depends(current_active_user),
+    db: Session = Depends(get_db)
+):
+    # Retrieve the subject where email matches current user email
+    sujeto = db.query(Subject).filter(Subject.email == current_user.email).first()
+    if not sujeto:
+        raise HTTPException(status_code=404, detail="Subject not found for this user")
+    
+    # Ensure user_id is linked
+    if sujeto.user_id != current_user.id:
+        sujeto.user_id = current_user.id
+        db.commit()
+        db.refresh(sujeto)
+        
+    return sujeto
+
+
+@router.post("/create-from-user", response_model=SubjectOut, status_code=201)
+async def crear_sujeto_desde_usuario(
+    plan: str,
+    current_user: User = Depends(current_active_user),
+    db: Session = Depends(get_db)
+):
+    if plan not in VALID_PLANS:
+        raise HTTPException(status_code=422, detail=f"Invalid plan '{plan}'. Must be one of: {', '.join(VALID_PLANS)}")
+    
+    # Check if a subject with this email already exists
+    sujeto = db.query(Subject).filter(Subject.email == current_user.email).first()
+    if sujeto:
+        # Link user_id if not done
+        if sujeto.user_id != current_user.id:
+            sujeto.user_id = current_user.id
+        sujeto.plan = plan
+        db.commit()
+        db.refresh(sujeto)
+        return sujeto
+
+    sujeto = Subject(
+        user_id=current_user.id,
+        nombre=current_user.nombre,
+        email=current_user.email,
+        departamento=current_user.departamento,
+        form_type=FormType.most_360,
+        plan=plan,
+    )
+    db.add(sujeto)
+    db.commit()
+    db.refresh(sujeto)
+    return sujeto
+
+
 @router.post("/", response_model=SubjectOut, status_code=201)
 async def crear_sujeto(
     data: SubjectCreate,
@@ -34,7 +89,12 @@ async def crear_sujeto(
     if data.plan and data.plan not in VALID_PLANS:
         raise HTTPException(status_code=422, detail=f"Invalid plan '{data.plan}'. Must be one of: {', '.join(VALID_PLANS)}")
 
+    # Check if a user with this email exists to link user_id
+    user_record = db.query(User).filter(User.email == data.email).first()
+    user_id = user_record.id if user_record else None
+
     sujeto = Subject(
+        user_id=user_id,
         nombre=data.nombre,
         email=data.email,
         departamento=data.departamento,

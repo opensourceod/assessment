@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 from database import Base
 from app.models.question import FormType
@@ -10,6 +10,7 @@ class Subject(Base):
     __tablename__ = "subjects"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     nombre = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     departamento = Column(String, nullable=False)
@@ -21,3 +22,4 @@ class Subject(Base):
 
     evaluadores = relationship("Evaluator", back_populates="sujeto", cascade="all, delete-orphan")
     self_respuestas = relationship("SelfAnswer", back_populates="sujeto", cascade="all, delete-orphan")
+    usuario = relationship("User")

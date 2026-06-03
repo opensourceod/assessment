@@ -2,24 +2,36 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import axios from '../api/client'
+import { useAuth } from '../context/AuthContext'
+import AuthForm from '../components/AuthForm'
 
 export default function AdminPanel() {
+  const { user, cargando: authLoading } = useAuth()
   const [stats, setStats] = useState(null)
   const [sujetos, setSujetos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [eliminando, setEliminando] = useState(null)
 
   async function cargar() {
-    const [statsRes, sujetosRes] = await Promise.all([
-      axios.get('/api/admin/stats'),
-      axios.get('/api/admin/subjects'),
-    ])
-    setStats(statsRes.data)
-    setSujetos(sujetosRes.data)
-    setCargando(false)
+    try {
+      const [statsRes, sujetosRes] = await Promise.all([
+        axios.get('/api/admin/stats'),
+        axios.get('/api/admin/subjects'),
+      ])
+      setStats(statsRes.data)
+      setSujetos(sujetosRes.data)
+    } catch (err) {
+      console.error('Failed to load admin data:', err)
+    } finally {
+      setCargando(false)
+    }
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    if (user && user.is_superuser) {
+      cargar()
+    }
+  }, [user])
 
   async function eliminar(id, nombre) {
     if (!window.confirm(`Delete ${nombre} and all their data? This cannot be undone.`)) return
@@ -32,6 +44,48 @@ export default function AdminPanel() {
     } finally {
       setEliminando(null)
     }
+  }
+
+  if (authLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><p className="text-muted">Loading...</p></div>
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6">
+        <div className="max-w-md w-full mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold text-dark">Admin Access</h2>
+            <p className="text-muted mt-2">Please sign in with an administrator account.</p>
+          </div>
+          <AuthForm />
+        </div>
+      </div>
+    )
+  }
+
+  if (!user.is_superuser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md card flex flex-col items-center gap-6 p-10 shadow-lg bg-white border border-gray-100 rounded-2xl">
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center shadow-inner">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-dark">Access Denied</h2>
+            <p className="text-sm text-muted mt-2">You do not have administrative privileges to access this area.</p>
+          </div>
+          <div className="flex gap-3 w-full">
+            <Link to="/360-feedback" className="btn-primary flex-1 text-center py-2 text-sm">
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (cargando) {

@@ -16,6 +16,7 @@ import app.models.question  # noqa: E402, F401
 import app.models.subject   # noqa: E402, F401
 import app.models.evaluator # noqa: E402, F401
 import app.models.answer    # noqa: E402, F401
+import app.models.user      # noqa: E402, F401
 
 config = context.config
 

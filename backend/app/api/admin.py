@@ -3,8 +3,15 @@ from sqlalchemy.orm import Session
 from database import get_db
 from app.models import Subject, Evaluator
 from app.schemas import SubjectOut
+from app.services.auth import fastapi_users
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+current_superuser = fastapi_users.current_user(active=True, superuser=True)
+
+router = APIRouter(
+    prefix="/admin",
+    tags=["admin"],
+    dependencies=[Depends(current_superuser)]
+)
 
 
 @router.get("/subjects", response_model=list[SubjectOut])

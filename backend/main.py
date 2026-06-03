@@ -11,6 +11,9 @@ from app.api import subjects, survey, reports, admin, pruebas_email
 from app.api.email_routes import router as email_router
 
 
+from app.services.auth import auth_backend, fastapi_users
+from app.schemas.user import UserRead, UserCreate, UserUpdate
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -28,6 +31,23 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Authentication routes
+app.include_router(
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/api/auth/jwt",
+    tags=["auth"],
+)
+app.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/api/auth",
+    tags=["auth"],
+)
+app.include_router(
+    fastapi_users.get_users_router(UserRead, UserUpdate),
+    prefix="/api/users",
+    tags=["users"],
 )
 
 app.include_router(subjects.router, prefix="/api")

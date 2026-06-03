@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import axios from '../api/client'
+import { useAuth } from '../context/AuthContext'
+import AuthForm from '../components/AuthForm'
 
 // ---------------------------------------------------------------------------
 // Data
@@ -135,6 +137,8 @@ export default function Home({ formType = 'most_360' }) {
   const howSteps  = HOW_IT_WORKS[formType]
   const is360     = formType === 'most_360'
 
+  const { user, cargando: authLoading } = useAuth()
+
   // step: 'pricing' | 'form'
   const [step, setStep]               = useState('pricing')
   const [selectedPlan, setSelectedPlan] = useState(null)
@@ -145,17 +149,45 @@ export default function Home({ formType = 'most_360' }) {
   const [cargando, setCargando] = useState(false)
   const [formError, setFormError] = useState(null)
 
-  // Detect payment return from url query parameters
+  // 1. Check if user already has a subject (only for 360)
   useEffect(() => {
-    if (!is360) return
+    if (!user || !is360) return
+
+    async function checkUserSubject() {
+      try {
+        const { data } = await axios.get('/api/subjects/mine')
+        navigate(`/dashboard/${data.id}`)
+      } catch (err) {
+        if (err?.response?.status !== 404) {
+          console.error('Error checking user subject:', err)
+        }
+      }
+    }
+
+    checkUserSubject()
+  }, [user, is360, navigate])
+
+  // 2. Detect payment return and create subject automatically
+  useEffect(() => {
+    if (!is360 || !user) return
     const planParam = searchParams.get('plan')
     const statusParam = searchParams.get('status')
     if (statusParam === 'success' && ['starter', 'team', 'organization'].includes(planParam)) {
-      setSelectedPlan(planParam)
-      setStep('form')
-      setSearchParams({}, { replace: true })
+      async function createSubjectFromUser() {
+        setCargando(true)
+        try {
+          const { data } = await axios.post(`/api/subjects/create-from-user?plan=${planParam}`)
+          setSearchParams({}, { replace: true })
+          navigate(`/dashboard/${data.id}`)
+        } catch (err) {
+          setFormError(err?.response?.data?.detail || 'Error initializing the assessment.')
+          setCargando(false)
+        }
+      }
+
+      createSubjectFromUser()
     }
-  }, [searchParams, setSearchParams, is360])
+  }, [searchParams, setSearchParams, is360, user, navigate])
 
   // Reset when user switches navbar tabs
   if (!is360 && step !== 'pricing') setStep('pricing')
@@ -182,7 +214,7 @@ export default function Home({ formType = 'most_360' }) {
     }
   }
 
-  // ── Step 2: Submit form ──────────────────────────────────────────────────
+  // ── Step 2: Submit form (Used for MOST 2.0 only) ──────────────────────────
   async function handleSubmit(e) {
     e.preventDefault()
     setCargando(true)
@@ -243,184 +275,113 @@ export default function Home({ formType = 'most_360' }) {
       {is360 ? (
         <div className="bg-white border-t border-gray-100 py-16 px-6">
           <div className="max-w-5xl mx-auto">
+            {authLoading ? (
+              <div className="text-center py-12 text-muted">Loading...</div>
+            ) : !user ? (
+              <AuthForm />
+            ) : (
+              <div>
+                <StepIndicator current={1} />
 
-            <StepIndicator current={step === 'pricing' ? 1 : 2} />
+                {/* ── STEP 1: Plan selection ─────────────────────────────────── */}
+                <div>
+                  <h2 className="text-2xl font-bold text-center mb-2">Choose your plan</h2>
+                  <p className="text-muted text-sm text-center mb-10">
+                    Select the participant size that best fits your organization.
+                  </p>
 
-            {/* ── STEP 1: Plan selection ─────────────────────────────────── */}
-            <div className={step === 'pricing' ? 'block' : 'hidden'}>
-              <h2 className="text-2xl font-bold text-center mb-2">Choose your plan</h2>
-              <p className="text-muted text-sm text-center mb-10">
-                Select the participant size that best fits your organization.
-              </p>
+                  {/* Plan cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                    {PLANS.map(plan => {
+                      const isSelected = selectedPlan === plan.id
+                      return (
+                        <button
+                          key={plan.id}
+                          type="button"
+                          onClick={() => setSelectedPlan(plan.id)}
+                          className={[
+                            'relative flex flex-col text-left rounded-2xl border-2 p-5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                            isSelected
+                              ? 'border-primary bg-primary/5 shadow-md'
+                              : 'border-gray-200 bg-white hover:border-primary/40 hover:shadow-sm',
+                          ].join(' ')}
+                        >
+                          {plan.popular && (
+                            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-dark text-[10px] font-bold uppercase tracking-widest px-3 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+                              Most popular
+                            </span>
+                          )}
 
-              {/* Plan cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {PLANS.map(plan => {
-                  const isSelected = selectedPlan === plan.id
-                  return (
+                          <div className={[
+                            'w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors',
+                            isSelected ? 'bg-primary text-dark' : 'bg-gray-100 text-gray-500',
+                          ].join(' ')}>
+                            {plan.icon}
+                          </div>
+
+                          <p className="text-xs font-bold uppercase tracking-widest text-muted mb-1">{plan.label}</p>
+                          <p className="text-lg font-bold text-dark leading-tight">{plan.size}</p>
+                          <p className="text-xs text-muted mb-3">{plan.unit}</p>
+                          <p className="text-xs text-muted leading-snug mb-4 flex-1">{plan.useCase}</p>
+
+                          <div className={['mt-auto pt-3 border-t transition-colors', isSelected ? 'border-primary/20' : 'border-gray-100'].join(' ')}>
+                            <p className="text-xl font-bold text-dark">{plan.price}</p>
+                            <p className="text-xs text-muted">{plan.priceNote}</p>
+                          </div>
+
+                          {isSelected && (
+                            <span className="absolute top-3 right-3 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M2 6l3 3 5-5"/>
+                              </svg>
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Pay button */}
+                  <div className="flex flex-col items-center gap-3">
+                    {payError && <p className="text-red-500 text-sm">{payError}</p>}
+                    {formError && <p className="text-red-500 text-sm">{formError}</p>}
                     <button
-                      key={plan.id}
                       type="button"
-                      onClick={() => setSelectedPlan(plan.id)}
+                      onClick={handlePay}
+                      disabled={!selectedPlan || paying || cargando}
                       className={[
-                        'relative flex flex-col text-left rounded-2xl border-2 p-5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                        isSelected
-                          ? 'border-primary bg-primary/5 shadow-md'
-                          : 'border-gray-200 bg-white hover:border-primary/40 hover:shadow-sm',
+                        'flex items-center gap-2 px-10 py-3.5 rounded-full font-semibold text-sm transition-all duration-200',
+                        selectedPlan && !paying && !cargando
+                          ? 'bg-primary text-dark hover:opacity-90 shadow-md shadow-primary/20'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed',
                       ].join(' ')}
                     >
-                      {plan.popular && (
-                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-dark text-[10px] font-bold uppercase tracking-widest px-3 py-0.5 rounded-full shadow-sm whitespace-nowrap">
-                          Most popular
-                        </span>
-                      )}
-
-                      <div className={[
-                        'w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors',
-                        isSelected ? 'bg-primary text-dark' : 'bg-gray-100 text-gray-500',
-                      ].join(' ')}>
-                        {plan.icon}
-                      </div>
-
-                      <p className="text-xs font-bold uppercase tracking-widest text-muted mb-1">{plan.label}</p>
-                      <p className="text-lg font-bold text-dark leading-tight">{plan.size}</p>
-                      <p className="text-xs text-muted mb-3">{plan.unit}</p>
-                      <p className="text-xs text-muted leading-snug mb-4 flex-1">{plan.useCase}</p>
-
-                      <div className={['mt-auto pt-3 border-t transition-colors', isSelected ? 'border-primary/20' : 'border-gray-100'].join(' ')}>
-                        <p className="text-xl font-bold text-dark">{plan.price}</p>
-                        <p className="text-xs text-muted">{plan.priceNote}</p>
-                      </div>
-
-                      {isSelected && (
-                        <span className="absolute top-3 right-3 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M2 6l3 3 5-5"/>
+                      {paying || cargando ? (
+                        <>
+                          <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                           </svg>
-                        </span>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                            <line x1="1" y1="10" x2="23" y2="10"/>
+                          </svg>
+                          {selectedPlan
+                            ? `Pay · ${activePlan?.price} ${activePlan?.priceNote}`
+                            : 'Select a plan to continue'}
+                        </>
                       )}
                     </button>
-                  )
-                })}
+                    {!selectedPlan && (
+                      <p className="text-xs text-muted">Choose one of the plans above to unlock payment</p>
+                    )}
+                  </div>
+                </div>
               </div>
-
-              {/* Pay button */}
-              <div className="flex flex-col items-center gap-3">
-                {payError && <p className="text-red-500 text-sm">{payError}</p>}
-                <button
-                  type="button"
-                  onClick={handlePay}
-                  disabled={!selectedPlan || paying}
-                  className={[
-                    'flex items-center gap-2 px-10 py-3.5 rounded-full font-semibold text-sm transition-all duration-200',
-                    selectedPlan && !paying
-                      ? 'bg-primary text-dark hover:opacity-90 shadow-md shadow-primary/20'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed',
-                  ].join(' ')}
-                >
-                  {paying ? (
-                    <>
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                      </svg>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                        <line x1="1" y1="10" x2="23" y2="10"/>
-                      </svg>
-                      {selectedPlan
-                        ? `Pay · ${activePlan?.price} ${activePlan?.priceNote}`
-                        : 'Select a plan to continue'}
-                    </>
-                  )}
-                </button>
-                {!selectedPlan && (
-                  <p className="text-xs text-muted">Choose one of the plans above to unlock payment</p>
-                )}
-              </div>
-            </div>
-
-            {/* ── STEP 2: Data collection form ──────────────────────────── */}
-            <div ref={formRef} className={step === 'form' ? 'block' : 'hidden'}>
-              <div className="max-w-md mx-auto">
-                {/* Plan summary */}
-                {activePlan && (
-                  <div className="flex items-center justify-between bg-primary/10 border border-primary/30 rounded-xl px-4 py-3 mb-8">
-                    <div className="flex items-center gap-3">
-                      <span className="w-7 h-7 bg-primary rounded-full flex items-center justify-center shrink-0">
-                        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M2 6l3 3 5-5"/>
-                        </svg>
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold text-dark">{activePlan.label} plan</p>
-                        <p className="text-xs text-muted">{activePlan.size} {activePlan.unit} · {activePlan.price} {activePlan.priceNote}</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setStep('pricing')}
-                      className="text-xs text-muted hover:text-primary transition-colors underline underline-offset-2"
-                    >
-                      Change
-                    </button>
-                  </div>
-                )}
-
-                <h2 className="text-2xl font-bold mb-2 text-center">Your details</h2>
-                <p className="text-muted text-sm text-center mb-8">
-                  Tell us about yourself to set up your 360 assessment.
-                </p>
-
-                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                  <div>
-                    <label className="label">Full name</label>
-                    <input
-                      className="input"
-                      placeholder="Jane Doe"
-                      value={form.nombre}
-                      onChange={e => setForm({ ...form, nombre: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="label">Email</label>
-                    <input
-                      type="email"
-                      className="input"
-                      placeholder="jane@company.com"
-                      value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="label">Department</label>
-                    <input
-                      className="input"
-                      placeholder="e.g. Engineering, Marketing..."
-                      value={form.departamento}
-                      onChange={e => setForm({ ...form, departamento: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  {formError && <p className="text-red-500 text-sm">{formError}</p>}
-
-                  <button
-                    type="submit"
-                    className="btn-primary w-full mt-2 py-3"
-                    disabled={cargando}
-                  >
-                    {cargando ? 'Setting up your assessment...' : `Begin assessment →`}
-                  </button>
-                </form>
-              </div>
-            </div>
-
+            )}
           </div>
         </div>
       ) : (
@@ -455,3 +416,4 @@ export default function Home({ formType = 'most_360' }) {
     </div>
   )
 }
+
