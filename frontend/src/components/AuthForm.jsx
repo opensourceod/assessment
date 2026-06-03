@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 export default function AuthForm() {
   const { login, register } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
-  
+
   const [form, setForm] = useState({
     nombre: '',
     email: '',
@@ -29,7 +29,7 @@ export default function AuthForm() {
     } catch (err) {
       console.error(err)
       setError(
-        err?.response?.data?.detail || 
+        err?.response?.data?.detail ||
         'Authentication failed. Please check your details.'
       )
     } finally {
@@ -44,18 +44,16 @@ export default function AuthForm() {
         <button
           type="button"
           onClick={() => { setIsLogin(true); setError(null); }}
-          className={`flex-1 py-2 text-sm font-semibold rounded-full transition-all ${
-            isLogin ? 'bg-primary text-dark shadow-sm' : 'text-gray-500 hover:text-gray-700'
-          }`}
+          className={`flex-1 py-2 text-sm font-semibold rounded-full transition-all ${isLogin ? 'bg-primary text-dark shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
         >
           Sign In
         </button>
         <button
           type="button"
           onClick={() => { setIsLogin(false); setError(null); }}
-          className={`flex-1 py-2 text-sm font-semibold rounded-full transition-all ${
-            !isLogin ? 'bg-primary text-dark shadow-sm' : 'text-gray-500 hover:text-gray-700'
-          }`}
+          className={`flex-1 py-2 text-sm font-semibold rounded-full transition-all ${!isLogin ? 'bg-primary text-dark shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
         >
           Register
         </button>
@@ -65,9 +63,10 @@ export default function AuthForm() {
         {isLogin ? 'Welcome Back!' : 'Create Your Account'}
       </h2>
       <p className="text-sm text-muted text-center mb-8">
-        {isLogin 
-          ? 'Enter your credentials to access your 360 dashboard.' 
+        {isLogin
+          ? 'Enter your credentials to access your 360 dashboard.'
           : 'Sign up to set up your 360 assessment.'}
+
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -132,10 +131,10 @@ export default function AuthForm() {
           className="btn-primary w-full mt-4 py-3 font-semibold text-sm"
           disabled={loading}
         >
-          {loading 
-            ? 'Processing...' 
-            : isLogin 
-              ? 'Sign In →' 
+          {loading
+            ? 'Processing...'
+            : isLogin
+              ? 'Sign In →'
               : 'Register and Begin →'}
         </button>
       </form>
