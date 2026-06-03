@@ -113,15 +113,15 @@ function OsodHeader() {
 }
 
 const PRINT_SCOPES = {
-  self:      { stroke: '#1a1a1a', fill: '#1a1a1a', fillOpacity: 0.18, label: 'Self'      },
-  external:  { stroke: '#06b6d4', fill: '#67e8f9', fillOpacity: 0.40, label: 'External'  },
-  manager:   { stroke: '#f97316', fill: '#fed7aa', fillOpacity: 0.40, label: 'Manager'   },
-  colleague: { stroke: '#3b82f6', fill: '#bfdbfe', fillOpacity: 0.40, label: 'Colleague' },
-  friend:    { stroke: '#16a34a', fill: '#bbf7d0', fillOpacity: 0.40, label: 'Friend'    },
+  self:      { stroke: '#1a1a1a', fill: 'none', fillOpacity: 0, label: 'Self',      dash: null },
+  external:  { stroke: '#06b6d4', fill: 'none', fillOpacity: 0, label: 'External',  dash: null },
+  manager:   { stroke: '#f97316', fill: 'none', fillOpacity: 0, label: 'Manager',   dash: '6 4' },
+  colleague: { stroke: '#3b82f6', fill: 'none', fillOpacity: 0, label: 'Colleague', dash: '2 3' },
+  friend:    { stroke: '#16a34a', fill: 'none', fillOpacity: 0, label: 'Friend',    dash: '6 3 2 3' },
 }
 
-function PrintRadarChart({ categorias }) {
-  const data = categorias.map(item => ({
+function PrintRadarChart({ competencias }) {
+  const data = competencias.map(item => ({
     subject:   item.categoria,
     self:      item.self_score      != null ? Math.round(item.self_score)      : 0,
     external:  item.external_score  != null ? Math.round(item.external_score)  : 0,
@@ -130,11 +130,37 @@ function PrintRadarChart({ categorias }) {
     friend:    item.score_friend    != null ? Math.round(item.score_friend)    : 0,
   }))
 
+  const renderTick = (props) => {
+    const { payload, x, y, textAnchor } = props
+    const item = data.find((d) => d.subject === payload.value)
+    const score = item ? item.external : 0
+
+    // Adjust vertical alignment slightly based on position to prevent overlap
+    let dyVal = 0;
+    if (y < 180) dyVal = -6;
+    else if (y > 260) dyVal = 6;
+
+    return (
+      <g transform={`translate(${x}, ${y + dyVal})`}>
+        <text
+          textAnchor={textAnchor}
+          fill="#334155"
+          fontSize={10}
+          fontWeight={600}
+          fontFamily="Inter, sans-serif"
+        >
+          <tspan x={0} dy="0">{payload.value}</tspan>
+          <tspan x={0} dy="12" fontWeight={800} fill="#1e293b">{score}%</tspan>
+        </text>
+      </g>
+    )
+  }
+
   return (
     <RechartsRadarChart width={660} height={440} outerRadius="62%" data={data}>
-      <PolarGrid stroke="#d4d4d4" />
-      <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12, fill: '#444', fontWeight: 500 }} />
-      <PolarRadiusAxis domain={[0, 100]} tickCount={6} tick={{ fontSize: 10, fill: '#aaa' }} axisLine={false} tickLine={false} />
+      <PolarGrid gridType="circle" stroke="#e2e8f0" strokeDasharray="4 4" />
+      <PolarAngleAxis dataKey="subject" tick={renderTick} />
+      <PolarRadiusAxis domain={[0, 100]} tickCount={6} tick={{ fontSize: 9, fill: '#94a3b8', fontFamily: 'Inter, sans-serif' }} axisLine={false} tickLine={false} />
       <Tooltip />
       {Object.entries(PRINT_SCOPES).map(([key, s]) => (
         <Radar
@@ -144,11 +170,19 @@ function PrintRadarChart({ categorias }) {
           stroke={s.stroke}
           fill={s.fill}
           fillOpacity={s.fillOpacity}
-          strokeWidth={2}
-          dot={false}
+          strokeWidth={1.5}
+          strokeDasharray={s.dash ?? undefined}
+          dot={{ r: 3, strokeWidth: 1, stroke: s.stroke, fill: '#ffffff' }}
         />
       ))}
-      <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+      <Legend
+        iconType="circle"
+        iconSize={8}
+        wrapperStyle={{ fontSize: 11, paddingTop: 16, fontFamily: 'Inter, sans-serif' }}
+        formatter={(value) => (
+          <span style={{ color: '#475569', fontWeight: 600, paddingLeft: 4 }}>{value}</span>
+        )}
+      />
     </RechartsRadarChart>
   )
 }
@@ -263,7 +297,7 @@ const ReportPrint = forwardRef(function ReportPrint({ reporte }, ref) {
         </p>
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <PrintRadarChart categorias={cats} />
+          <PrintRadarChart competencias={reporte.competencias ?? []} />
         </div>
 
         <p style={{ fontSize: 10.5, color: '#9ca3af', marginTop: 16, textAlign: 'center' }}>

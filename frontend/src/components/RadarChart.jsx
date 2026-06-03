@@ -10,11 +10,11 @@ import {
 } from 'recharts'
 
 const SCOPES = {
-  self:      { stroke: '#1a1a1a', fill: '#1a1a1a', fillOpacity: 0.20, label: 'Self',      dash: null },
-  external:  { stroke: '#06b6d4', fill: '#67e8f9', fillOpacity: 0.40, label: 'External',  dash: null },
-  manager:   { stroke: '#f97316', fill: '#fed7aa', fillOpacity: 0.40, label: 'Manager',   dash: null },
-  colleague: { stroke: '#3b82f6', fill: '#bfdbfe', fillOpacity: 0.40, label: 'Colleague', dash: null },
-  friend:    { stroke: '#16a34a', fill: '#bbf7d0', fillOpacity: 0.40, label: 'Friend',    dash: null },
+  self:      { stroke: '#1a1a1a', fill: 'none', fillOpacity: 0, label: 'Self',      dash: null },
+  external:  { stroke: '#06b6d4', fill: 'none', fillOpacity: 0, label: 'External',  dash: null },
+  manager:   { stroke: '#f97316', fill: 'none', fillOpacity: 0, label: 'Manager',   dash: '6 4' },
+  colleague: { stroke: '#3b82f6', fill: 'none', fillOpacity: 0, label: 'Colleague', dash: '2 3' },
+  friend:    { stroke: '#16a34a', fill: 'none', fillOpacity: 0, label: 'Friend',    dash: '6 3 2 3' },
 }
 
 function CustomTooltip({ active, payload, label }) {
@@ -22,19 +22,36 @@ function CustomTooltip({ active, payload, label }) {
   return (
     <div style={{
       background: 'white',
-      border: '1px solid #e5e7eb',
-      borderRadius: 10,
-      padding: '10px 14px',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-      minWidth: 160,
+      border: '1px solid #e2e8f0',
+      borderRadius: 2,
+      padding: '12px 14px',
+      boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 8px -1px rgba(0, 0, 0, 0.04)',
+      minWidth: 180,
+      fontFamily: 'Inter, sans-serif',
     }}>
-      <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#111' }}>{label}</p>
-      {payload.map(p => (
-        <p key={p.dataKey} style={{ color: SCOPES[p.dataKey]?.stroke, fontSize: 13, margin: '3px 0' }}>
-          {SCOPES[p.dataKey]?.label}:{' '}
-          <strong>{p.value != null ? `${p.value}%` : '—'}</strong>
-        </p>
-      ))}
+      <p style={{
+        fontWeight: 700,
+        fontSize: 11,
+        marginBottom: 8,
+        color: '#0f172a',
+        letterSpacing: '0.05em',
+        textTransform: 'uppercase'
+      }}>
+        {label}
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {payload.map(p => (
+          <div key={p.dataKey} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontSize: 12 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569' }}>
+              <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: SCOPES[p.dataKey]?.stroke }} />
+              {SCOPES[p.dataKey]?.label}
+            </span>
+            <strong style={{ color: '#0f172a' }}>
+              {p.value != null ? `${p.value}%` : '—'}
+            </strong>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -53,21 +70,47 @@ export default function RadarChart({ data, showBreakdown }) {
     ? ['self', 'manager', 'colleague', 'friend']
     : ['self', 'external']
 
+  const renderTick = (props) => {
+    const { payload, x, y, textAnchor } = props
+    const item = chartData.find((d) => d.subject === payload.value)
+    const score = item ? item.external : 0
+
+    // Adjust vertical alignment slightly based on position to prevent overlap
+    let dyVal = 0;
+    if (y < 240) dyVal = -6;
+    else if (y > 320) dyVal = 6;
+
+    return (
+      <g transform={`translate(${x}, ${y + dyVal})`}>
+        <text
+          textAnchor={textAnchor}
+          fill="#334155"
+          fontSize={10.5}
+          fontWeight={600}
+          fontFamily="Inter, sans-serif"
+        >
+          <tspan x={0} dy="0">{payload.value}</tspan>
+          <tspan x={0} dy="12" fontWeight={800} fill="#1e293b">{score}%</tspan>
+        </text>
+      </g>
+    )
+  }
+
   return (
-    <div className="w-full h-[560px] bg-white">
+    <div className="w-full h-[560px] bg-white flex items-center justify-center">
       <ResponsiveContainer width="100%" height="100%">
-        <RechartsRadarChart outerRadius="65%" data={chartData}>
-          <PolarGrid stroke="#d4d4d4" radialLines={true} />
+        <RechartsRadarChart outerRadius="68%" data={chartData}>
+          <PolarGrid gridType="circle" stroke="#e2e8f0" strokeDasharray="4 4" radialLines={true} />
 
           <PolarAngleAxis
             dataKey="subject"
-            tick={{ fontSize: 13, fill: '#444', fontWeight: 500 }}
+            tick={renderTick}
           />
 
           <PolarRadiusAxis
             domain={[0, 100]}
             tickCount={6}
-            tick={{ fontSize: 11, fill: '#aaa' }}
+            tick={{ fontSize: 10, fill: '#94a3b8', fontFamily: 'Inter, sans-serif' }}
             axisLine={false}
             tickLine={false}
           />
@@ -84,18 +127,20 @@ export default function RadarChart({ data, showBreakdown }) {
                 stroke={s.stroke}
                 fill={s.fill}
                 fillOpacity={s.fillOpacity}
-                strokeWidth={2}
+                strokeWidth={1.5}
                 strokeDasharray={s.dash ?? undefined}
-                dot={false}
-                activeDot={{ r: 4, fill: s.stroke, strokeWidth: 0 }}
+                dot={{ r: 3, strokeWidth: 1, stroke: s.stroke, fill: '#ffffff' }}
+                activeDot={{ r: 4.5, strokeWidth: 1.5, stroke: '#ffffff', fill: s.stroke }}
               />
             )
           })}
 
           <Legend
-            wrapperStyle={{ paddingTop: 12, fontSize: 13 }}
+            iconType="circle"
+            iconSize={8}
+            wrapperStyle={{ paddingTop: 24, fontSize: 12, fontFamily: 'Inter, sans-serif' }}
             formatter={(value) => (
-              <span style={{ color: '#333', fontWeight: 500 }}>{value}</span>
+              <span style={{ color: '#475569', fontWeight: 600, paddingLeft: 4 }}>{value}</span>
             )}
           />
         </RechartsRadarChart>

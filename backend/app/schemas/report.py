@@ -18,3 +18,4 @@ class GapReportOut(BaseModel):
     total_evaluadores: int
     evaluadores_completados: int
     categorias: list[CategoryScore]
+    competencias: list[CategoryScore]

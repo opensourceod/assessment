@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import axios from '../api/client'
 
@@ -83,21 +83,6 @@ const PLANS = [
       </svg>
     ),
   },
-  {
-    id:        'enterprise',
-    label:     'Enterprise',
-    size:      'Up to 200',
-    unit:      'evaluators',
-    useCase:   'Enterprise leadership programs',
-    price:     '$60–$250',
-    priceNote: 'per person',
-    popular:   false,
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 21V7l9-4 9 4v14"/><path d="M9 21v-6h6v6"/><path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01"/>
-      </svg>
-    ),
-  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -144,6 +129,7 @@ function StepIndicator({ current }) {
 
 export default function Home({ formType = 'most_360' }) {
   const navigate  = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const formRef   = useRef(null)
   const meta      = META[formType]
   const howSteps  = HOW_IT_WORKS[formType]
@@ -159,25 +145,39 @@ export default function Home({ formType = 'most_360' }) {
   const [cargando, setCargando] = useState(false)
   const [formError, setFormError] = useState(null)
 
+  // Detect payment return from url query parameters
+  useEffect(() => {
+    if (!is360) return
+    const planParam = searchParams.get('plan')
+    const statusParam = searchParams.get('status')
+    if (statusParam === 'success' && ['starter', 'team', 'organization'].includes(planParam)) {
+      setSelectedPlan(planParam)
+      setStep('form')
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams, is360])
+
   // Reset when user switches navbar tabs
   if (!is360 && step !== 'pricing') setStep('pricing')
   if (!is360 && selectedPlan)       setSelectedPlan(null)
 
   // ── Step 1: Pay ──────────────────────────────────────────────────────────
-  async function handlePay() {
+  function handlePay() {
     if (!selectedPlan) return
     setPaying(true)
     setPayError(null)
-    try {
-      // TODO: replace with real payment gateway call
-      // For now: simulate a successful payment check with a small delay
-      await new Promise(res => setTimeout(res, 800))
-      // On success → reveal the data collection form
-      setStep('form')
-      setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
-    } catch {
-      setPayError('Payment could not be processed. Please try again.')
-    } finally {
+
+    const checkoutUrls = {
+      starter:      'https://opensource-od.circle.so/checkout/360-most-assessment-starter',
+      team:         'https://opensource-od.circle.so/checkout/360-most-assessment-team',
+      organization: 'https://opensource-od.circle.so/checkout/360-most-assessment-organization',
+    }
+
+    const targetUrl = checkoutUrls[selectedPlan]
+    if (targetUrl) {
+      window.location.href = targetUrl
+    } else {
+      setPayError('Invalid plan selected.')
       setPaying(false)
     }
   }
@@ -254,7 +254,7 @@ export default function Home({ formType = 'most_360' }) {
               </p>
 
               {/* Plan cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {PLANS.map(plan => {
                   const isSelected = selectedPlan === plan.id
                   return (
