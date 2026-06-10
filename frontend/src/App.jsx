@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import SubjectDashboard from './pages/SubjectDashboard'
 import EvaluatorSurvey from './pages/EvaluatorSurvey'
@@ -6,12 +6,19 @@ import SelfAssessment from './pages/SelfAssessment'
 import GapReport from './pages/GapReport'
 import AdminPanel from './pages/AdminPanel'
 
+// Preserves query params when redirecting from / to /360-feedback
+// Circle's post-payment redirect lands on / with ?plan=X&status=success
+function RootRedirect() {
+  const { search } = useLocation()
+  return <Navigate to={`/360-feedback${search}`} replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Redirect root to default assessment type */}
-        <Route path="/" element={<Navigate to="/360-feedback" replace />} />
+        {/* Redirect root to default assessment type, preserving query params */}
+        <Route path="/" element={<RootRedirect />} />
 
         {/* Assessment entry points — form_type driven by route */}
         <Route path="/360-feedback" element={<Home formType="most_360" />} />
