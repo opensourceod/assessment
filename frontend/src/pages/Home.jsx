@@ -149,45 +149,44 @@ export default function Home({ formType = 'most_360' }) {
   const [cargando, setCargando] = useState(false)
   const [formError, setFormError] = useState(null)
 
-  // 1. Check if user already has a subject (only for 360)
+  // 1. Check existing subject OR create from pending payment on login
   useEffect(() => {
     if (!user || !is360) return
 
-    async function checkUserSubject() {
+    // Resolve the plan to use: URL param (Circle redirect) → localStorage (our backup)
+    const planFromUrl    = searchParams.get('status') === 'success' ? searchParams.get('plan') : null
+    const pendingRaw     = localStorage.getItem('pendingPlan')
+    const pending        = pendingRaw ? JSON.parse(pendingRaw) : null
+    const planFromStorage = pending && Date.now() - pending.ts < 3_600_000 ? pending.plan : null
+
+    const resolvedPlan = planFromUrl || planFromStorage
+    const validPlans   = ['starter', 'team', 'organization']
+
+    async function initSubject() {
+      setCargando(true)
       try {
-        const { data } = await axios.get('/api/subjects/mine')
-        navigate(`/dashboard/${data.id}`)
-      } catch (err) {
-        if (err?.response?.status !== 404) {
-          console.error('Error checking user subject:', err)
-        }
-      }
-    }
-
-    checkUserSubject()
-  }, [user, is360, navigate])
-
-  // 2. Detect payment return and create subject automatically
-  useEffect(() => {
-    if (!is360 || !user) return
-    const planParam = searchParams.get('plan')
-    const statusParam = searchParams.get('status')
-    if (statusParam === 'success' && ['starter', 'team', 'organization'].includes(planParam)) {
-      async function createSubjectFromUser() {
-        setCargando(true)
-        try {
-          const { data } = await axios.post(`/api/subjects/create-from-user?plan=${planParam}`)
+        if (resolvedPlan && validPlans.includes(resolvedPlan)) {
+          // Payment just completed — create (or fetch) the subject with the paid plan
+          const { data } = await axios.post(`/api/subjects/create-from-user?plan=${resolvedPlan}`)
+          localStorage.removeItem('pendingPlan')
           setSearchParams({}, { replace: true })
           navigate(`/dashboard/${data.id}`)
-        } catch (err) {
-          setFormError(err?.response?.data?.detail || 'Error initializing the assessment.')
-          setCargando(false)
+        } else {
+          // No pending payment — just check if subject already exists
+          const { data } = await axios.get('/api/subjects/mine')
+          navigate(`/dashboard/${data.id}`)
         }
+      } catch (err) {
+        if (err?.response?.status !== 404) {
+          setFormError(err?.response?.data?.detail || 'Error initializing the assessment.')
+        }
+        // 404 means no subject yet — show plan selection normally
+        setCargando(false)
       }
-
-      createSubjectFromUser()
     }
-  }, [searchParams, setSearchParams, is360, user, navigate])
+
+    initSubject()
+  }, [user, is360]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset when user switches navbar tabs
   if (!is360 && step !== 'pricing') setStep('pricing')
@@ -207,6 +206,9 @@ export default function Home({ formType = 'most_360' }) {
 
     const targetUrl = checkoutUrls[selectedPlan]
     if (targetUrl) {
+      // Save plan locally so we can recover it after Circle's redirect
+      // even if Circle doesn't append ?plan=X&status=success to the return URL.
+      localStorage.setItem('pendingPlan', JSON.stringify({ plan: selectedPlan, ts: Date.now() }))
       window.location.href = targetUrl
     } else {
       setPayError('Invalid plan selected.')
