@@ -1,4 +1,4 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function OsodLogo() {
@@ -29,6 +29,12 @@ const tabClass = ({ isActive }) =>
 
 export default function Navbar() {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    logout()
+    navigate('/360-feedback')
+  }
 
   return (
     <nav className="bg-dark text-white px-8 py-4 flex items-center justify-between">
@@ -58,7 +64,7 @@ export default function Navbar() {
 
         {user ? (
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="flex items-center gap-1.5 border border-white/15 text-gray-300 hover:border-red-400 hover:text-red-400 text-sm font-medium px-4 py-1.5 rounded-full transition-all duration-200"
           >
             Logout

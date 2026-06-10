@@ -28,10 +28,14 @@ export default function AuthForm() {
       }
     } catch (err) {
       console.error(err)
-      setError(
-        err?.response?.data?.detail ||
-        'Authentication failed. Please check your details.'
-      )
+      const detail = err?.response?.data?.detail
+      const message =
+        detail === 'REGISTER_USER_ALREADY_EXISTS'
+          ? 'An account with this email already exists. Please sign in instead.'
+          : detail === 'LOGIN_BAD_CREDENTIALS'
+          ? 'Incorrect email or password.'
+          : detail || 'Authentication failed. Please check your details.'
+      setError(message)
     } finally {
       setLoading(false)
     }
