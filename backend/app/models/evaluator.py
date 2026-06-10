@@ -9,6 +9,7 @@ import enum
 class RelationshipType(str, enum.Enum):
     manager = "manager"
     colleague = "colleague"
+    client = "client"
     friend = "friend"
 
 
