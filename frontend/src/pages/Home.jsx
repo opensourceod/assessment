@@ -149,6 +149,9 @@ export default function Home({ formType = 'most_360' }) {
   const [cargando, setCargando] = useState(false)
   const [formError, setFormError] = useState(null)
 
+  // Stable string derived from searchParams — avoids new object reference on every render
+  const searchString = searchParams.toString()
+
   // 1. Check existing subject OR create from pending payment on login
   useEffect(() => {
     if (!user || !is360) return
@@ -186,7 +189,7 @@ export default function Home({ formType = 'most_360' }) {
     }
 
     initSubject()
-  }, [user, is360, searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, is360, searchString]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset when user switches navbar tabs
   if (!is360 && step !== 'pricing') setStep('pricing')
