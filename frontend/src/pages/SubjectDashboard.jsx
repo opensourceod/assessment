@@ -25,6 +25,7 @@ export default function SubjectDashboard() {
   const [enviando,  setEnviando]  = useState(false)
   const [error,     setError]     = useState(null)
   const [exito,     setExito]     = useState(null)
+  const [eliminando, setEliminando] = useState(null)
 
   async function cargar() {
     try {
@@ -38,6 +39,19 @@ export default function SubjectDashboard() {
   }
 
   useEffect(() => { cargar() }, [subjectId])
+
+  async function eliminarEvaluador(evaluadorId) {
+    if (!confirm('Remove this evaluator? They will need to be re-invited if you want their response.')) return
+    setEliminando(evaluadorId)
+    try {
+      await axios.delete(`/api/subjects/${subjectId}/evaluators/${evaluadorId}`)
+      await cargar()
+    } catch (e) {
+      setError(e?.response?.data?.detail || 'Failed to remove evaluator.')
+    } finally {
+      setEliminando(null)
+    }
+  }
 
   async function agregarEvaluador(e) {
     e.preventDefault()
@@ -254,11 +268,28 @@ export default function SubjectDashboard() {
                       <p className="text-sm font-medium">{ev.nombre}</p>
                       <p className="text-xs text-muted">{ev.email} · {ev.relacion}</p>
                     </div>
+                    <div className="flex items-center gap-2">
                     <span className={`text-xs px-2 py-1 rounded font-medium ${
                       ev.completado ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                     }`}>
                       {ev.completado ? 'Done' : 'Pending'}
                     </span>
+                    {!ev.completado && (
+                      <button
+                        onClick={() => eliminarEvaluador(ev.id)}
+                        disabled={eliminando === ev.id}
+                        title="Remove evaluator"
+                        className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                          <path d="M10 11v6M14 11v6"/>
+                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                   </li>
                 ))}
               </ul>

@@ -161,3 +161,18 @@ def listar_evaluadores(subject_id: int, db: Session = Depends(get_db)):
     if not sujeto:
         raise HTTPException(status_code=404, detail="Subject not found")
     return sujeto.evaluadores
+
+
+@router.delete("/{subject_id}/evaluators/{evaluator_id}", status_code=204)
+def eliminar_evaluador(subject_id: int, evaluator_id: int, db: Session = Depends(get_db)):
+    evaluador = (
+        db.query(Evaluator)
+        .filter(Evaluator.id == evaluator_id, Evaluator.subject_id == subject_id)
+        .first()
+    )
+    if not evaluador:
+        raise HTTPException(status_code=404, detail="Evaluator not found")
+    if evaluador.completado:
+        raise HTTPException(status_code=422, detail="Cannot remove an evaluator who has already completed the survey")
+    db.delete(evaluador)
+    db.commit()
