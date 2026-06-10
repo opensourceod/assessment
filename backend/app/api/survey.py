@@ -40,6 +40,15 @@ EVALUATOR_LABEL_REWRITES: dict[str, str] = {
     "Not demonstrated (I am not aware of and have never demonstrated this ability)": (
         "Not demonstrated (has never demonstrated this knowledge or ability)"
     ),
+    "Developing (I am somewhat aware of and inconsistent in demonstrating this ability)": (
+        "Developing (somewhat aware of and inconsistent in demonstrating this ability)"
+    ),
+    "Capable (I am aware of and consistently demonstrate this ability)": (
+        "Capable (aware of and consistently demonstrates this ability)"
+    ),
+    "Outstanding (I am very aware of and consistently excel in demonstrating this ability)": (
+        "Outstanding (very aware of and consistently excels in demonstrating this ability)"
+    ),
 }
 
 
