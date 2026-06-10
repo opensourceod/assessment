@@ -186,7 +186,7 @@ export default function Home({ formType = 'most_360' }) {
     }
 
     initSubject()
-  }, [user, is360]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, is360, searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset when user switches navbar tabs
   if (!is360 && step !== 'pricing') setStep('pricing')
