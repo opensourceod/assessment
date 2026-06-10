@@ -6,6 +6,7 @@ import axios from '../api/client'
 const RELACIONES = [
   { value: 'manager',   label: 'Manager / Supervisor' },
   { value: 'colleague', label: 'Colleague' },
+  { value: 'client',    label: 'Client' },
   { value: 'friend',    label: 'Friend' },
 ]
 
