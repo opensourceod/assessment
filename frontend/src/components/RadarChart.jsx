@@ -56,8 +56,18 @@ function CustomTooltip({ active, payload, label }) {
   )
 }
 
+const CATEGORY_ORDER = [
+  'Humanity', 'Psychology', 'Culture', 'Learning',
+  'Consulting', 'Change', 'Design', 'Performance', 'Strategy',
+]
+
 export default function RadarChart({ data, showBreakdown }) {
-  const chartData = data.map((item) => ({
+  const sorted = [...data].sort((a, b) => {
+    const ai = CATEGORY_ORDER.indexOf(a.categoria)
+    const bi = CATEGORY_ORDER.indexOf(b.categoria)
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
+  })
+  const chartData = sorted.map((item) => ({
     subject:   item.categoria,
     self:      item.self_score      != null ? Math.round(item.self_score)      : 0,
     external:  item.external_score  != null ? Math.round(item.external_score)  : 0,
